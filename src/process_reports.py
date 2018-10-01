@@ -10,17 +10,22 @@ data.mongo_setup.global_init()
 
 from data.dues import Dues
 from data.members import Member
-from data.transactions import Transaction
+from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
 
 
 if 0:
-    Transaction.drop_collection()
-    settings = {'charity': {'balance':decimal.Decimal(28764.70), 'first_col': 0},
-                'admin': {'balance':decimal.Decimal(37369.24), 'first_col': 1}}
+    Account.drop_collection()
+    settings = {'charity': {'balance':decimal.Decimal(28764.70), 'first_col': 0, 'trans': Transaction, 'acc': Account},
+                'admin': {'balance':decimal.Decimal(37369.24), 'first_col': 1, 'trans': AdminTransaction, 'acc': AdminAccount}}
     for account in ('charity', 'admin'):
-        balance = settings[account]['balance']
-        for fn in glob.glob('reports/*.xlsx'):
+    # for account in ('charity',):
+        acc = settings[account]['acc'](name=account)
+        acc.initial_balance = settings[account]['balance']
+        files = glob.glob('reports/*.xlsx')
+        files.sort()
+        for fn in files:
             wb = load_workbook(filename = fn, data_only=True, guess_types=True)
+            report_month = fn.split('/')[-1].split('xx')[0]
             sh = wb[account.upper()]
             in_trans = False
             for row in sh.values:
@@ -40,19 +45,21 @@ if 0:
                             if val:
                                 amt = decimal.Decimal(val)
                                 break
-                        acct = account
-                        if acct == 'admin' and any(c in row[1].lower() for c in ('bar ', 'drinks ')):
-                            acct='bar'
-                        print(f'{acct} {trans_type} on {date.strftime("%y/%m/%d")}: {amt:.2f}. "{row[1]}". Balance: {balance:.2f}')
-                        t = Transaction(account=acct, trans_type=trans_type, trans_date=date,
-                                        description=row[1], amount=amt, balance_before=balance,
-                                        reported=True)
-                        t.save()
-                        balance = op(balance, amt)
+                        kwds = {}
+                        if account == 'admin':
+                            kwds['bar'] = False
+                            if any(c in row[1].lower() for c in ('bar ', 'drinks ')):
+                                kwds['bar'] = True
+                        print(f'{account} {trans_type} on {date.strftime("%y/%m/%d")}: {amt:.2f}. "{row[1]}".')
+                        acc.transactions.append(settings[account]['trans'](trans_type=trans_type, trans_date=date, description=row[1], 
+                                                                           amount=amt, report_month=report_month, **kwds))
                 # find date info
                 if row[0] == 'Date':
                     in_trans = True
-        print(f'final balance: {balance:.2f}')
+        acc.save()
+        print(f'{acc.current_balance():.2f}')
+        if account == 'admin':
+            print(acc.bar_values())
 
 if 0:
     wb = load_workbook(filename = 'reports/1809xx.xlsx', data_only=True, guess_types=True)
