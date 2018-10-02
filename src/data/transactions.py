@@ -7,7 +7,7 @@ import mongoengine
 
 @attr.s
 class Balance():
-    date = attr.ib(validator=attr.validators.instance_of(datetime))
+    date = attr.ib()
     amount = attr.ib(validator=attr.validators.instance_of(decimal.Decimal))
 
     def alter(self, trans_type, value):
@@ -59,6 +59,8 @@ class Account(mongoengine.Document):
         return (start_balance, end_balance)
 
 class AdminAccount(Account):
+    transactions = mongoengine.EmbeddedDocumentListField(AdminTransaction)
+
     def bar_values(self):
         sales = 0
         purchases = 0

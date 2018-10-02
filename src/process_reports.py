@@ -57,7 +57,7 @@ if 0:
                 if row[0] == 'Date':
                     in_trans = True
         acc.save()
-        print(f'{acc.current_balance():.2f}')
+        print(f'{acc.current_balance()[1].amount:.2f}')
         if account == 'admin':
             print(acc.bar_values())
 
