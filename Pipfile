@@ -10,6 +10,7 @@ mongoengine = "*"
 xlrd = "*"
 openpyxl = "*"
 attrs = "*"
+flask = "*"
 
 [dev-packages]
 
