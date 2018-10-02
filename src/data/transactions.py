@@ -1,6 +1,17 @@
-import mongoengine
 from datetime import datetime
+import decimal
 import operator
+
+import attr, attr.validators
+import mongoengine
+
+@attr.s
+class Balance():
+    date = attr.ib(validator=attr.validators.instance_of(datetime))
+    amount = attr.ib(validator=attr.validators.instance_of(decimal.Decimal))
+
+    def alter(self, trans_type, value):
+        self.amount = (operator.add if trans_type == 'deposit' else operator.sub)(self.amount, value)
 
 class Transaction(mongoengine.EmbeddedDocument):
     trans_type = mongoengine.StringField(required=True, choices=('deposit', 'payment'))
@@ -33,17 +44,19 @@ class Account(mongoengine.Document):
         }
 
     def current_balance(self, month=None):
-        start_balance = self.initial_balance
-        balance = start_balance
+        start_balance = Balance(self.transactions[0].trans_date, self.initial_balance)
+        end_balance = Balance(self.transactions[-1].trans_date, start_balance.amount)
         got_start = False
         for t in self.transactions:
             if got_start and t.report_month != month:
                 break
             if t.report_month == month and not got_start:
                 got_start = True
-                start_balance = balance
-            balance = (operator.add if t.trans_type == 'deposit' else operator.sub)(balance, t.amount)
-        return (start_balance, balance)
+                start_balance.amount = end_balance.amount
+                start_balance.date = t.trans_date
+            end_balance.alter(t.trans_type, t.amount)
+            end_balance.date = t.trans_date
+        return (start_balance, end_balance)
 
 class AdminAccount(Account):
     def bar_values(self):

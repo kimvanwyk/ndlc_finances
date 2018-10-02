@@ -9,6 +9,7 @@ pymongo = "*"
 mongoengine = "*"
 xlrd = "*"
 openpyxl = "*"
+attrs = "*"
 
 [dev-packages]
 
