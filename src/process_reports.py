@@ -76,3 +76,9 @@ if 0:
         if (row[0] == 'Dues') and (row[1] == 'Name'):
             in_trans = True
 
+if 0:
+    acc = Account.objects(name='charity').first()
+    print(acc.current_balance(month='1807'))
+    print(acc.current_balance(month='1808'))
+    print(acc.current_balance(month='1809'))
+    print(acc.current_balance(month='1810'))

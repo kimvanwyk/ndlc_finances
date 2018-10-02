@@ -32,11 +32,18 @@ class Account(mongoengine.Document):
         'allow_inheritance': True
         }
 
-    def current_balance(self):
-        balance = self.initial_balance
+    def current_balance(self, month=None):
+        start_balance = self.initial_balance
+        balance = start_balance
+        got_start = False
         for t in self.transactions:
+            if got_start and t.report_month != month:
+                break
+            if t.report_month == month and not got_start:
+                got_start = True
+                start_balance = balance
             balance = (operator.add if t.trans_type == 'deposit' else operator.sub)(balance, t.amount)
-        return balance
+        return (start_balance, balance)
 
 class AdminAccount(Account):
     def bar_values(self):
