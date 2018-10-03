@@ -1,4 +1,5 @@
 from datetime import datetime
+import decimal
 
 import mongoengine
 
@@ -8,9 +9,14 @@ class CakeTransfer(mongoengine.EmbeddedDocument):
     responsible_party = mongoengine.StringField(required=True)
     direction = mongoengine.StringField(required=True, choices=('withdrawal', 'return'), default='withdrawal')
 
+class CakePayment(mongoengine.EmbeddedDocument):
+    date = mongoengine.DateTimeField(required=True, default=datetime.now)
+    amount = mongoengine.DecimalField(required=True)
+    responsible_party = mongoengine.StringField(required=True)
+
 class CakeStock(mongoengine.Document):
-    initial_stock = mongoengine.IntField(required=True)
-    transfers = mongoengine.EmbeddedDocumentListField(CakeTransfer)
-    
+    transfers = mongoengine.EmbeddedDocumentListField(CakeTransfer) 
+    payments = mongoengine.EmbeddedDocumentListField(CakePayment)
+   
     def balance(self):
-        return int((self.initial_stock - sum(ct.number for ct in self.transfers)) / 12) 
+        return int((sum(ct.number * (-1 if ct.direction == 'withdrawal' else 1)  for ct in self.transfers)) / 12) 

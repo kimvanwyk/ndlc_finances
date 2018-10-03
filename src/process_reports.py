@@ -11,7 +11,7 @@ data.mongo_setup.global_init()
 from data.dues import Dues
 from data.members import Member
 from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
-
+from data.cakes import CakeStock
 
 if 0:
     Account.drop_collection()
@@ -82,3 +82,7 @@ if 0:
     print(acc.current_balance(month='1808'))
     print(acc.current_balance(month='1809'))
     print(acc.current_balance(month='1810'))
+
+if 0:
+    cakes = CakeStock.objects().first()
+    print(cakes.balance())
