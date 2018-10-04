@@ -1,0 +1,60 @@
+% \documentclass[$if(fontsize)$$fontsize$pt,$endif$a4paper]{article}
+\documentclass[12pt, a4paper]{article}
+\usepackage[hmargin=1.5cm,vmargin=2cm]{geometry}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\renewcommand*\familydefault{\sfdefault} %% Only if the base font of the document is to be sans serif
+
+\usepackage{savetrees}
+\usepackage[usenames,dvipsnames]{color}
+
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{booktabs}
+
+% Hyper refs
+\usepackage[breaklinks=true,unicode=true,pdfborder={0 0 0}]{hyperref}
+\usepackage{breakurl}
+\hypersetup{colorlinks={true}, urlcolor=blue, linkcolor=black}
+\urlstyle{same}
+
+\usepackage[compact]{titlesec}
+\usepackage[normalem]{ulem}
+\titleformat*{\section}{\Large\color{blue}}
+\titleformat*{\subsection}{\large\color{blue}}
+\titleformat*{\subsubsection}{\color{blue}}
+\titlespacing{\section}{0pt}{*0}{*0}
+\titlespacing{\subsection}{0pt}{*0}{*0}
+\titlespacing{\subsubsection}{0pt}{*0}{*0}
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+$if(tables)$
+\usepackage{array}
+% This is needed because raggedright in table elements redefines \\:
+\newcommand{\PreserveBackslash}[1]{\let\temp=\\#1\let\\=\temp}
+\let\PBS=\PreserveBackslash
+$endif$
+
+\usepackage{graphicx}
+
+\setlength{\parindent}{0pt}
+
+% suppress hyphens as per http://www.matthewstrawbridge.com/content/2014/creating-pdfs-justified-text-no-hyphens-pandoc/
+\exhyphenpenalty=10000 \hyphenpenalty=10000
+
+\usepackage[parfill]{parskip}
+\begin{document}
+
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+
+$body$
+
+\end{document}
+ 
