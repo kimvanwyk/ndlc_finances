@@ -1,0 +1,22 @@
+<!-- <form method="POST" action="/"> -->
+<!-- {{ form.csrf_token }} -->
+<!-- <table> -->
+<!--     <tr><td>{{ form.description.label }}</td><td>{{ form.description }}</td></tr> -->
+<!--     {{ form.trans_type.label }} {{ form.trans_type }} -->
+<!--     {{ form.trans_date.label }} {{ form.trans_date }} -->
+<!--     {{ form.amount.label }} {{ form.amount }} -->
+<!--     {{ form.report_month.label }} {{ form.report_month }} -->
+<!--     <input type="submit" value="Submit"> -->
+<!-- </form> -->
+
+<form method="POST" action="/">
+{{ form.hidden_tag() }}
+<table>
+{% for field in form %}
+    {% if field.widget.input_type != 'hidden' %}
+        <tr><td>{{ field.label }}</td><td>{{ field }}</td></tr>
+    {% endif %}
+{% endfor %}
+</table>
+<input type="submit" value="Submit">
+</form>
