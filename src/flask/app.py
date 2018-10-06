@@ -3,13 +3,14 @@ import data.mongo_setup
 from data.dues import Dues
 from data.members import Member
 from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
+from utils import report_months
 
 from flask import Flask, render_template
 from flask_wtf import FlaskForm
 from wtforms import StringField, DecimalField, DateField, RadioField, SelectField
 from wtforms.validators import DataRequired
 
-from utils import report_months
+from datetime import date
 
 app = Flask(__name__)
 with open('secret_key.txt', 'rb') as fh:
@@ -17,27 +18,32 @@ with open('secret_key.txt', 'rb') as fh:
 
 data.mongo_setup.global_init()
 
-account_map = {'charity': Account,
-               'admin': AdminAccount
+account_map = {'charity': (Account, Transaction),
+               'admin': (AdminAccount, AdminTransaction)
                }
 
 class TransactionForm(FlaskForm):
-    trans_type = RadioField(label='Transaction', choices = [(c,c) for c in ('deposit', 'payment')])
-    trans_date = DateField(label='Date')
+    trans_type = RadioField(label='Transaction', choices = [(c,c) for c in ('deposit', 'payment')], default='deposit')
+    trans_date = DateField(label='Date', default=date.today())
     description = StringField(label='Description')
     amount = DecimalField(label='Amount')
+    position = SelectField(label='Insert After')
     report_month = SelectField(label='Report Month', choices = [(c,c) for c in report_months.get_report_months()])
 
 @app.route('/transaction/add/<account>/', methods=('GET', 'POST'))
 def add_transaction(account):
     try:
-        acc = account_map.get(account, None).objects(name=account).first()
+        acc = account_map.get(account, None)[0].objects(name=account).first()
     except Exception as e:
         return f'"{account}" is not a valid account name'
     if acc:
         form = TransactionForm()
+        form.position.choices = [(str(n), c) for (n,c) in acc.transaction_list()]
         if form.validate_on_submit():
-            return f'Transaction added'
-        return render_template('transaction_add.html', form=form)
+            acc.transactions.insert(int(form.position.data) + 1,
+                                    account_map.get(account, None)[1](**{k:v for (k,v) in form.data.items() if k not in ('position','csrf_token')}))
+            acc.save()
+            return f'Transaction added - balance: {acc.current_balance()[1].amount:.2f}'
+        return render_template('transaction_add.html', form=form,account=account)
     return 'an error occured'
 

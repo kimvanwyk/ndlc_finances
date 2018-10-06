@@ -14,7 +14,6 @@ def get_report_months():
         if month == 6:
             break
         months.append(date(year, month, 1))
-    months.reverse()
     return [d.strftime('%y%m') for d in months]
 
 if __name__ == '__main__':
