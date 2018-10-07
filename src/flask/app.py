@@ -5,7 +5,7 @@ from data.members import Member
 from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
 from utils import report_months
 
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for
 from flask_wtf import FlaskForm
 from wtforms import StringField, DecimalField, DateField, RadioField, SelectField, BooleanField
 from wtforms.validators import DataRequired
@@ -32,6 +32,13 @@ class AdminTransactionForm(TransactionForm):
 account_map = {'charity': (Account, Transaction, TransactionForm),
                'admin': (AdminAccount, AdminTransaction, AdminTransactionForm)
                }
+
+@app.route('/')
+def index():
+    links = [('Balances', url_for('balances'))]
+    for acc in Account.objects():
+        links.append((f'Add Transaction for {acc.name.capitalize()} Account', url_for('add_transaction', account=acc.name)))
+    return render_template('index.html', links=links)
 
 @app.route('/transaction/add/<account>/', methods=('GET', 'POST'))
 def add_transaction(account):
