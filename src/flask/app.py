@@ -56,7 +56,7 @@ def add_transaction(account):
             acc.save()
             flash(f'Transaction recorded for {acc.name.capitalize()} account. Balance: R{acc.current_balance()[1].amount:.2f}')
             return redirect(url_for('index'))
-        return render_template('transaction_add.html', form = form,account = account)
+        return render_template('transaction.html', form = form, account = account, caller='add_transaction')
     return render_template('error.html', message=f'An unexpected error occured')
 
 @app.route('/balances/')
