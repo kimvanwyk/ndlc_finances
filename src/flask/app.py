@@ -5,7 +5,7 @@ from data.members import Member
 from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
 from utils import report_months
 
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, redirect, flash
 from flask_wtf import FlaskForm
 from wtforms import StringField, DecimalField, DateField, RadioField, SelectField, BooleanField
 from wtforms.validators import DataRequired
@@ -54,7 +54,8 @@ def add_transaction(account):
             acc.transactions.insert(int(form.position.data) + 1,
                                     trans_model(**{k:v for (k,v) in form.data.items() if k not in ('position','csrf_token')}))
             acc.save()
-            return f'Transaction added - balance: {acc.current_balance()[1].amount:.2f}'
+            flash(f'Transaction recorded for {acc.name.capitalize()} account. Balance: R{acc.current_balance()[1].amount:.2f}')
+            return redirect(url_for('index'))
         return render_template('transaction_add.html', form = form,account = account)
     return render_template('error.html', message=f'An unexpected error occured')
 

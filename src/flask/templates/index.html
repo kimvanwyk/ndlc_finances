@@ -1,0 +1,16 @@
+<h1>Treasurer Interface for North Durban Lions Club</h1>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class=flashes>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+    <hr>
+  {% endif %}
+{% endwith %}
+<ul>
+{% for link in links %}
+<li><a href="{{ link[1] }}">{{ link[0] }}</a>
+{% endfor %}
+</ul>
