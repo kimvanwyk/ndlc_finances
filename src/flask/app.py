@@ -7,7 +7,7 @@ from utils import report_months
 
 from flask import Flask, render_template
 from flask_wtf import FlaskForm
-from wtforms import StringField, DecimalField, DateField, RadioField, SelectField
+from wtforms import StringField, DecimalField, DateField, RadioField, SelectField, BooleanField
 from wtforms.validators import DataRequired
 
 from datetime import date
@@ -18,10 +18,6 @@ with open('secret_key.txt', 'rb') as fh:
 
 data.mongo_setup.global_init()
 
-account_map = {'charity': (Account, Transaction),
-               'admin': (AdminAccount, AdminTransaction)
-               }
-
 class TransactionForm(FlaskForm):
     trans_type = RadioField(label='Transaction', choices = [(c,c) for c in ('deposit', 'payment')], default='deposit')
     trans_date = DateField(label='Date', default=date.today())
@@ -30,6 +26,13 @@ class TransactionForm(FlaskForm):
     position = SelectField(label='Insert After')
     report_month = SelectField(label='Report Month', choices = [(c,c) for c in report_months.get_report_months()])
 
+class AdminTransactionForm(TransactionForm):
+    bar = BooleanField(label='Bar Transaction', default=False)
+
+account_map = {'charity': (Account, Transaction, TransactionForm),
+               'admin': (AdminAccount, AdminTransaction, AdminTransactionForm)
+               }
+
 @app.route('/transaction/add/<account>/', methods=('GET', 'POST'))
 def add_transaction(account):
     try:
@@ -37,7 +40,7 @@ def add_transaction(account):
     except Exception as e:
         return f'"{account}" is not a valid account name'
     if acc:
-        form = TransactionForm()
+        form = account_map.get(account, None)[2]()
         form.position.choices = [(str(n), c) for (n,c) in acc.transaction_list()]
         if form.validate_on_submit():
             acc.transactions.insert(int(form.position.data) + 1,
