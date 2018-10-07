@@ -36,15 +36,16 @@ account_map = {'charity': (Account, Transaction, TransactionForm),
 @app.route('/transaction/add/<account>/', methods=('GET', 'POST'))
 def add_transaction(account):
     try:
-        acc = account_map.get(account, None)[0].objects(name=account).first()
+        (acc_model, trans_model, trans_form) = account_map.get(account, None)
+        acc = acc_model.objects(name=account).first()
     except Exception as e:
         return f'"{account}" is not a valid account name'
     if acc:
-        form = account_map.get(account, None)[2]()
+        form = trans_form()
         form.position.choices = [(str(n), c) for (n,c) in acc.transaction_list()]
         if form.validate_on_submit():
             acc.transactions.insert(int(form.position.data) + 1,
-                                    account_map.get(account, None)[1](**{k:v for (k,v) in form.data.items() if k not in ('position','csrf_token')}))
+                                    trans_model(**{k:v for (k,v) in form.data.items() if k not in ('position','csrf_token')}))
             acc.save()
             return f'Transaction added - balance: {acc.current_balance()[1].amount:.2f}'
         return render_template('transaction_add.html', form=form,account=account)
