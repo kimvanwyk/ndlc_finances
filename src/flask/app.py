@@ -46,7 +46,7 @@ def add_transaction(account):
         (acc_model, trans_model, trans_form) = account_map.get(account, None)
         acc = acc_model.objects(name=account).first()
     except Exception as e:
-        return f'"{account}" is not a valid account name'
+        return render_template('error.html', message=f'"{account}" is not a valid account name')
     if acc:
         form = trans_form()
         form.position.choices = [(str(n), c) for (n,c) in acc.transaction_list()]
@@ -56,7 +56,7 @@ def add_transaction(account):
             acc.save()
             return f'Transaction added - balance: {acc.current_balance()[1].amount:.2f}'
         return render_template('transaction_add.html', form = form,account = account)
-    return 'an error occured'
+    return render_template('error.html', message=f'An unexpected error occured')
 
 @app.route('/balances/')
 def balances():
