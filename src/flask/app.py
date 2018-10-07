@@ -48,6 +48,19 @@ def add_transaction(account):
                                     trans_model(**{k:v for (k,v) in form.data.items() if k not in ('position','csrf_token')}))
             acc.save()
             return f'Transaction added - balance: {acc.current_balance()[1].amount:.2f}'
-        return render_template('transaction_add.html', form=form,account=account)
+        return render_template('transaction_add.html', form = form,account = account)
     return 'an error occured'
 
+@app.route('/balances/')
+def balances():
+    report_month = report_months.get_report_months()[0]
+    results = []
+    for acc in Account.objects():
+        balances = acc.current_balance(month = report_month)
+        results.append([acc.name.capitalize(), report_month])
+        results[-1].append((f'{balances[0].date:%d/%m/%y}', f'{balances[0].amount:.2f}'))
+        results[-1].append([c[1] for c in acc.transaction_list(reverse=False, month = report_month)])
+        results[-1].append((f'{balances[1].date:%d/%m/%y}', f'{balances[1].amount:.2f}'))
+    return render_template('balances.html', results=results)
+    
+        

@@ -1,0 +1,12 @@
+{% for result in results %}
+<h1>{{ result[0] }} Account for Reporting Month {{ result[1] }}</h1>
+<h3>Opening Balance ({{ result[2][0] }}): R{{ result[2][1] }}</h3>
+<h3>Transactions:</h3>
+<ul>
+{% for trans in result[3] %}
+<li>{{ trans }}</li>
+{% endfor %}
+</ul>
+<h3>Closing Balance ({{ result[4][0] }}: R{{ result[4][1] }}</h3>
+<hr>
+{% endfor %}

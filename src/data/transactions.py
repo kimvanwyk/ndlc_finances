@@ -58,8 +58,9 @@ class Account(mongoengine.Document):
             end_balance.date = t.trans_date
         return (start_balance, end_balance)
 
-    def transaction_list(self, reverse=True):
-        l = [(n,f'{c.trans_date:%d/%m/%y} {c.trans_type.capitalize()}: {c.description} (R{c.amount:.2f})') for (n,c) in enumerate(self.transactions)]
+    def transaction_list(self, reverse=True, month=None):
+        l = [(n,f'{c.trans_date:%d/%m/%y} {c.trans_type.capitalize()}: {c.description} (R{c.amount:.2f})') 
+             for (n,c) in enumerate(self.transactions) if (month == None) or (c.report_month == month)]
         if reverse:
             l.reverse()
         return l
