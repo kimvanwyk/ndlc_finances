@@ -1,13 +1,14 @@
 import data.mongo_setup
 
-from data.dues import Dues
-from data.members import Member
+#from data.dues import Dues
+#from data.members import Member
 from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
+from data.market import MarketMonth
 from utils import report_months
 
 from flask import Flask, render_template, url_for, redirect, flash
 from flask_wtf import FlaskForm
-from wtforms import StringField, DecimalField, DateField, RadioField, SelectField, BooleanField
+from wtforms import StringField, DecimalField, DateField, RadioField, SelectField, BooleanField, IntegerField
 from wtforms.validators import DataRequired
 
 from datetime import date
@@ -29,6 +30,11 @@ class TransactionForm(FlaskForm):
 class AdminTransactionForm(TransactionForm):
     bar = BooleanField(label='Bar Transaction', default=False)
 
+class MarketMonthForm(FlaskForm):
+    year = IntegerField(label='Year', default=date.today().year)
+    month = IntegerField(label='Month', default=date.today().month)
+    expenses = DecimalField(label='Expenses', default=0)
+
 account_map = {'charity': (Account, Transaction, TransactionForm),
                'admin': (AdminAccount, AdminTransaction, AdminTransactionForm)
                }
@@ -38,6 +44,7 @@ def index():
     links = [('Balances', url_for('balances'))]
     for acc in Account.objects():
         links.append((f'Add Transaction for {acc.name.capitalize()} Account', url_for('add_transaction', account=acc.name)))
+    links.append((f'Add Market Month', url_for('add_market_month')))
     return render_template('index.html', links=links)
 
 @app.route('/transaction/add/<account>/', methods=('GET', 'POST'))
@@ -71,4 +78,14 @@ def balances():
         results[-1].append((f'{balances[1].date:%d/%m/%y}', f'{balances[1].amount:.2f}'))
     return render_template('balances.html', results=results)
     
+@app.route('/market/month/add/', methods=('GET', 'POST'))
+def add_market_month():
+    form = MarketMonthForm()
+    if form.validate_on_submit():
+        mm = MarketMonth(date=date(year=form.data['year'], month=form.data['month'], day=1), expenses=form.data['expenses'])
+        mm.save()
+        flash(f'Market Month "{mm.date:%y%m}" added')
+        return redirect(url_for('index'))
+    return render_template('marketmonth.html', form = form, caller='add_market_month')
+
         

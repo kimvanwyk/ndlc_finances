@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import mongoengine
-from members import Member
+from .members import Member
 
 class MarketDay(mongoengine.EmbeddedDocument):
     date = mongoengine.DateTimeField(required=True)
@@ -16,7 +16,7 @@ class MarketDay(mongoengine.EmbeddedDocument):
     }
 
 class MarketMonth(mongoengine.Document):
-    date = mongoengine.DateTimeField(required=True)
+    date = mongoengine.DateTimeField(required=True, unique=True)
     expenses = mongoengine.DecimalField(required=True, default=0)
     days = mongoengine.EmbeddedDocumentListField(MarketDay)
 
