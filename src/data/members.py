@@ -12,4 +12,12 @@ class Member(mongoengine.Document):
     }
     
     def __str__(self):
-        print(f'{first_name} {last_name}')
+        return f'{self.first_name} {self.last_name}'
+
+def list_members():
+    return [(str(m.id), str(m)) for m in Member.objects().order_by("last_name")]
+
+if __name__ == '__main__':
+    import mongo_setup
+    mongo_setup.global_init()
+    print(list_members())
