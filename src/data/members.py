@@ -1,5 +1,5 @@
 import mongoengine
-from data.dues import Dues
+from dues import Dues
 
 class Member(mongoengine.Document):
     first_name = mongoengine.StringField(required=True, unique_with="last_name")

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import mongoengine
-from data.members import Member
+from members import Member
 
 class MarketDay(mongoengine.EmbeddedDocument):
     date = mongoengine.DateTimeField(required=True)
@@ -24,3 +24,11 @@ class MarketMonth(mongoengine.Document):
         'db_alias': 'default',
         'collection': 'marketmonths'
     }
+
+def list_market_months():
+    return [(str(m.id), m.date.strftime("%B '%y")) for m in MarketMonth.objects().order_by("-date")]
+
+if __name__ == '__main__':
+    import mongo_setup
+    mongo_setup.global_init()
+    print(list_market_months())
