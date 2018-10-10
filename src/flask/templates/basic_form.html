@@ -1,4 +1,4 @@
-<form method="POST" action="{{ url_for(caller, **args) }}">
+<form method="POST" action="{{ url_for(caller) }}">
 {{ form.hidden_tag() }}
 <table>
 {% for field in form %}
