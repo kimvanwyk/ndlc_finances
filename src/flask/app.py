@@ -8,7 +8,7 @@ from utils import report_months
 
 from flask import Flask, render_template, url_for, redirect, flash
 from flask_wtf import FlaskForm
-from wtforms import StringField, DecimalField, DateField, RadioField, SelectField, BooleanField, IntegerField
+from wtforms import StringField, DecimalField, DateField, RadioField, SelectField, BooleanField, IntegerField, SubmitField
 from wtforms.validators import DataRequired
 
 from datetime import date
@@ -39,6 +39,14 @@ class MarketMonthEditForm(FlaskForm):
     month = StringField(label='Month')
     expenses = DecimalField(label='Expenses')
     days = SelectField(label='Market Days')
+    day_submit = SubmitField(label='Edit Market Day Details')
+    month_submit = SubmitField(label='Submit Change in Month Details')
+
+class MarketMonthEditNoDaysForm(FlaskForm):
+    month = StringField(label='Month')
+    expenses = DecimalField(label='Expenses')
+    days = StringField(label='Market Days', default='No market days available for this month')
+    month_submit = SubmitField(label='Submit Change in Month Details')
 
 class MarketMonthSelectorForm(FlaskForm):
     month = SelectField(label='Market Months')
@@ -53,7 +61,7 @@ def index():
     for acc in Account.objects():
         links.append((f'Add Transaction for {acc.name.capitalize()} Account', url_for('add_transaction', account=acc.name)))
     links.append((f'Add Market Month', url_for('add_market_month')))
-    links.append((f'Edit Market Month', url_for('select_market_month')))
+    links.append((f'Edit Market Month', url_for('select_market_month',action='edit')))
     return render_template('index.html', links=links)
 
 @app.route('/transaction/add/<account>/', methods=('GET', 'POST'))
@@ -107,23 +115,31 @@ def edit_market_month(month):
     except Exception as e:
         flash(f'"{month} is not a valid date for a market month')
         return redirect(url_for('index'))
-    form = MarketMonthEditForm(month=month, expenses=mm.expenses)
-    form.days.choices = [(str(m.id), m.date.strftime("%y/%m")) for m in mm.days]
-
-    # if form.validate_on_submit():
-    #     mm = MarketMonth(date=date(year=form.data['year'], month=form.data['month'], day=1), expenses=form.data['expenses'])
-    #     mm.save()
-    #     flash(f'Market Month "{mm.date:%y%m}" added')
-    #     return redirect(url_for('index'))
+    days = mm.list_days()
+    if days:
+        form = MarketMonthEditForm(month=month, expenses=mm.expenses)
+        form.days.choices = days
+    else:
+        form = MarketMonthEditNoDaysForm(month=month, expenses=mm.expenses)
+    if form.validate_on_submit():
+        if form.month_submit.data:
+            mm.date = date(year=int(f'20{form.month.data[:2]}'), month=int(form.month.data[2:]), day=1)
+            mm.expenses = form.expenses.data
+            mm.save()
+            flash(f'Market Month "{mm.date:%y%m}" edited')
+            return redirect(url_for('index'))
     return render_template('marketmonth.html', form = form, caller='edit_market_month', args={'month':month})
 
-@app.route('/market/month/', methods=('GET', 'POST'))
-def select_market_month():
+@app.route('/market/month/<action>/', methods=('GET', 'POST'))
+def select_market_month(action, actions = {'edit':'edit_market_month'}):
+    if action not in actions:
+        flash(f'("{action}" is not a valid action for market month selection')
+        return redirect(url_for('index'))
     form = MarketMonthSelectorForm()
     form.month.choices = list_market_months()
     if form.validate_on_submit():
         mm = MarketMonth.objects(id=form.month.data).first()
-        return redirect(url_for('edit_market_month',month=f"{mm.date:%y%m}"))
-    return render_template('basic_form.html', form = form, caller='select_market_month')
+        return redirect(url_for(actions[action],month=f"{mm.date:%y%m}"))
+    return render_template('basic_form.html', form = form, caller='select_market_month', args={'action':action})
 
         
