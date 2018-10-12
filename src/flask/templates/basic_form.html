@@ -3,10 +3,9 @@
 <table>
 {% for field in form %}
     {% if field.widget.input_type != 'hidden' %}
-        <tr><td>{{ field.label }}</td><td>{{ field }}</td></tr>
+        <tr><td>{%if field.widget.input_type != 'submit' %}{{ field.label }}{% endif %}</td><td>{{ field }}</td></tr>
     {% endif %}
 {% endfor %}
 </table>
-<input type="submit" value="Submit">
 </form>
 <a href="/">Back to Main Menu</a>
