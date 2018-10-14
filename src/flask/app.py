@@ -3,12 +3,13 @@ import data.mongo_setup
 #from data.dues import Dues
 #from data.members import Member
 from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
-from data.market import MarketMonth, list_market_months
+from data.market import MarketMonth, MarketDay, list_market_months
+from data.members import Member, list_members
 from utils import report_months
 
 from flask import Flask, render_template, url_for, redirect, flash
 from flask_wtf import FlaskForm
-from wtforms import StringField, DecimalField, DateField, RadioField, SelectField, BooleanField, IntegerField, SubmitField
+from wtforms import StringField, DecimalField, DateField, RadioField, SelectField, SelectMultipleField, BooleanField, IntegerField, SubmitField
 from wtforms.validators import DataRequired
 
 from datetime import date
@@ -43,16 +44,26 @@ class MarketMonthEditForm(FlaskForm):
     days = SelectField(label='Market Days')
     day_submit = SubmitField(label='Edit Market Day Details')
     month_submit = SubmitField(label='Submit Change in Month Details')
+    new_day_submit = SubmitField(label='Add Market Day')
 
 class MarketMonthEditNoDaysForm(FlaskForm):
     month = StringField(label='Month')
     expenses = DecimalField(label='Expenses')
     days = StringField(label='Market Days', default='No market days available for this month')
     month_submit = SubmitField(label='Submit Change in Month Details')
+    new_day_submit = SubmitField(label='Add Market Day')
 
 class MarketMonthSelectorForm(FlaskForm):
     month = SelectField(label='Market Months')
     submit = SubmitField(label='Select Market Month')
+
+class MarketDayForm(FlaskForm):
+    date = DateField(label='Date', default=date.today())
+    members = SelectMultipleField(label='Members', choices=list_members())
+    traded = BooleanField(label='Did the market stall trade?', default=True)
+    income = DecimalField(label='Income', default=0)
+    expenses = DecimalField(label='Expenses', default=0)
+    submit = SubmitField(label='Submit Market Day Changes')
 
 account_map = {'charity': (Account, Transaction, TransactionForm),
                'admin': (AdminAccount, AdminTransaction, AdminTransactionForm)
@@ -125,6 +136,10 @@ def edit_market_month(month):
     else:
         form = MarketMonthEditNoDaysForm(month=month, expenses=mm.expenses)
     if form.validate_on_submit():
+        if form.day_submit.data:
+            return redirect(url_for('edit_market_day', month=month, day=form.days.data))
+        if form.new_day_submit.data:
+            return redirect(url_for('add_market_day', month=month))
         if form.month_submit.data:
             mm.date = date(year=int(f'20{form.month.data[:2]}'), month=int(form.month.data[2:]), day=1)
             mm.expenses = form.expenses.data
@@ -144,5 +159,52 @@ def select_market_month(action, actions = {'edit':'edit_market_month'}):
         mm = MarketMonth.objects(id=form.month.data).first()
         return redirect(url_for(actions[action],month=f"{mm.date:%y%m}"))
     return render_template('basic_form.html', form = form, caller='select_market_month', args={'action':action})
+
+@app.route('/market/day/add/<month>/', methods=('GET', 'POST'))
+def add_market_day(month):
+    form = MarketDayForm()
+    if form.validate_on_submit():
+        d = date(year=int(f'20{month[:2]}'), month=int(month[2:]), day=1)
+        mm = MarketMonth.objects(date=d).first()
+        md = MarketDay(date=form.date.data, traded=form.traded.data, income=form.income.data,
+                       expenses=form.expenses.data, members=[Member.objects(id=i).first() for i in form.members.data])
+        mm.days.append(md)
+        mm.save()
+        flash(f'Market Day "{md.date:%m%d}" added for Market Month "{md.date:%y%m}"')
+        return redirect(url_for('index'))
+    return render_template('basic_form.html', form = form, caller='add_market_day', args={'month':month})
+        
+@app.route('/market/day/edit/<month>/<day>/', methods=('GET', 'POST'))
+def edit_market_day(month, day):
+    try:
+        d = date(year=int(f'20{month[:2]}'), month=int(month[2:]), day=1)
+        mm = MarketMonth.objects(date=d).first()
+        if not mm:
+            raise Exception
+    except Exception as e:
+        flash(f'"{month} is not a valid date for a market month')
+        return redirect(url_for('index'))
+    days = mm.list_days()
+    if day not in [d[0] for d in days]:
+        flash(f'"{day} is not a valid market date for market month "{month}"')
+        return redirect(url_for('index'))
+    d = date(year=int(f'20{month[:2]}'), month=int(day[:2]), day=int(day[2:]))
+    for (md_pos, md) in enumerate(mm.days):
+        if md.date == d:
+            break
+    form = MarketDayForm(date=md.date, traded=md.traded, income=md.income,
+                         expenses=md.expenses, members=[m.id for m in md.members])
+    print([(f.name, f.validate(form), f.data) for f in form])
+    if form.validate_on_submit():
+        md.date = form.date.data
+        md.traded = form.traded.data
+        md.income = form.income.data
+        md.expenses = form.expenses.data
+        md.members = [Member.objects(id=i).first() for i in form.members.data]
+        mm.days[md_pos] = md
+        mm.save()
+        flash(f'Market Day "{md.date:%m%d}" edited for Market Month "{md.date:%y%m}"')
+        return redirect(url_for('index'))
+    return render_template('basic_form.html', form = form, caller='edit_market_day', args={'month':month, 'day':day})
 
         

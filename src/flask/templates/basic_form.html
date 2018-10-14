@@ -3,7 +3,7 @@
 <table>
 {% for field in form %}
     {% if field.widget.input_type != 'hidden' %}
-        <tr><td>{%if field.widget.input_type != 'submit' %}{{ field.label }}{% endif %}</td><td>{{ field }}</td></tr>
+        <tr><td>{%if field.widget.input_type != 'submit' %}{{ field.label }}{% endif %}</td><td>{% if 'members' not in field.name %}{{ field }}{% else %}{{ field(size=20)}}{% endif %}</td></tr>
     {% endif %}
 {% endfor %}
 </table>
