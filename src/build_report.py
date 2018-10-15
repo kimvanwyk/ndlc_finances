@@ -1,6 +1,8 @@
 import data.mongo_setup
 data.mongo_setup.global_init()
 
+from datetime import date
+
 from data.dues import Dues
 from data.members import Member
 from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
@@ -42,8 +44,24 @@ def build_transaction_table(account, month):
     markup.append(r'\end{center}') 
     return markup
 
+def build_dues_table():
+    markup = [f'# Dues as at {date.today():%d %b %Y}']
+    markup.append(r'\begin{center}')
+    markup.append(r'\begin{tabularx}{\textwidth}{|X|r|r|r|}')
+    markup.append('\hhline{|-|-|-|-|}')
+    markup.append(f"\\textbf{{Name}} & \\textbf{{Total}} & \\textbf{{Discount}} & \\textbf{{Paid}} \\\\")
+    markup.append('\hhline{|-|-|-|-|}')
+
+    for m in Member.objects().order_by("last_name"):
+        markup.append(f"{m.last_name}, {m.first_name} & {m.dues.total:.2f} & {m.dues.discount:.2f} & {m.dues.paid:.2f} \\\\")
+        markup.append('\hhline{|-|-|-|-|}')
+    markup.append(r'\end{tabularx}') 
+    markup.append(r'\end{center}') 
+    return markup
+
 markup = []
 markup.extend(build_transaction_table(Account.objects(name='charity').first(), '1810'))
+markup.extend(build_dues_table())
 markup.append('\\newpage')
 markup.extend(build_transaction_table(Account.objects(name='admin').first(), '1810'))
 with open('markup.txt', 'w') as fh:
