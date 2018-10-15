@@ -36,8 +36,8 @@ def build_transaction_table(account, month):
     wdesc = widths['desc']
     wdebit = widths['debit']
     wcredit = widths['credit']
-    markup = []
-    markup = [r'\begin{center}']
+    markup = [f'# {account.name.capitalize()} Account as at {end_balance.date:%d %b %Y}']
+    markup.append(r'\begin{center}')
     markup.append(r'\begin{tabularx}{\textwidth}{|c|X|r|r|}')
     markup.append('\hhline{|-|-|-|-|}')
     markup.append(f"\\textbf{{Date}} & \\textbf{{Description}} & \\textbf{{Debit}} & \\textbf{{Credit}} \\\\")
@@ -50,9 +50,9 @@ def build_transaction_table(account, month):
     markup.append(r'\end{center}') 
     return markup
 
-markup = ['# Charity']
+markup = []
 markup.extend(build_transaction_table(Account.objects(name='charity').first(), '1810'))
-markup.append('\n# Admin')
+markup.append('\\newpage')
 markup.extend(build_transaction_table(Account.objects(name='admin').first(), '1810'))
 with open('markup.txt', 'w') as fh:
     fh.write('\n'.join(markup))
