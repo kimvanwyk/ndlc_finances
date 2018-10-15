@@ -14,13 +14,8 @@ def build_transaction_table(account, month):
         if credit and ('Balance' in desc):
             credit = f'\\textbf{{{credit}}}'
         out.append((date, desc, debit, credit))
-        for w in widths.keys():
-            widths[w] = max(len(locals()[w]), widths[w])
 
     out = []
-    widths = {'desc': len('Description'),
-              'debit': len('Debit'),
-              'credit': len('Credit')}
     (start_balance, end_balance) = account.current_balance(month)
     add_row(start_balance.date.strftime('%d/%m/%y'), r'\textbf{Balance brought forward}', None, start_balance.amount)
     current_date = start_balance.date
@@ -33,9 +28,6 @@ def build_transaction_table(account, month):
         add_row(date, t.description, t.amount if t.trans_type == 'payment' else None, t.amount if t.trans_type == 'deposit' else None)
     add_row(end_balance.date.strftime('%d/%m/%y'), r'\textbf{Balance of account}', None, end_balance.amount)
 
-    wdesc = widths['desc']
-    wdebit = widths['debit']
-    wcredit = widths['credit']
     markup = [f'# {account.name.capitalize()} Account as at {end_balance.date:%d %b %Y}']
     markup.append(r'\begin{center}')
     markup.append(r'\begin{tabularx}{\textwidth}{|c|X|r|r|}')
