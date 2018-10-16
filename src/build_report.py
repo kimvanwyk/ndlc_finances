@@ -1,12 +1,39 @@
-import data.mongo_setup
-data.mongo_setup.global_init()
-
 from datetime import date
 
+import data.mongo_setup
 from data.dues import Dues
 from data.members import Member
 from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
 
+import attr
+
+data.mongo_setup.global_init()
+
+@attr.s
+class Cell():
+    val = attr.ib(default='')
+    bold = attr.ib(default=False)
+
+    def __getattr__(self, name):
+        if name == 'value':
+            if not self.bold:
+                return self.val
+            else:
+                return f'\\textbf{{{self.val}}}'
+
+def build_table(cols, rows):
+    hline = f'\\hhline{{{"|-"*len(cols)}|}}'
+    markup = []
+    markup.append(r'\begin{center}')
+    markup.append(f'\\begin{{tabularx}}{{\\textwidth}}{{|{"|".join(cols)}|}}')
+    markup.append(hline)
+    for r in rows:
+        markup.append(f'{" & ".join([c.value for c in r])} \\\\')
+        markup.append(hline)
+    markup.append(r'\end{tabularx}') 
+    markup.append(r'\end{center}') 
+    return markup
+       
 def build_transaction_table(account, month):
     def add_row(date, desc, debit, credit):
         debit = f'{debit:.2f}' if debit else ''
@@ -64,19 +91,8 @@ def build_bar_table():
     (sales, purchases) = acc.bar_values()
 
     markup = [f'# Bar Account as at {date.today():%d %b %Y}']
-    markup.append(r'\begin{center}')
-    markup.append(r'\begin{tabularx}{\textwidth}{|X|r|r|}')
-    markup.append('\hhline{|-|-|-|}')
-    markup.append(f"Balance brought forward & & 0 \\\\")
-    markup.append('\hhline{|-|-|-|}')
-    markup.append(f"Sales & & {sales:.2f} \\\\")
-    markup.append('\hhline{|-|-|-|}')
-    markup.append(f"Purchases & {purchases:.2f} & \\\\")
-    markup.append('\hhline{|-|-|-|}')
-    markup.append(f"\\textbf{{Excess Income over Expenditure}} & & \\textbf{{{sales-purchases:.2f}}} \\\\")
-    markup.append('\hhline{|-|-|-|}')
-    markup.append(r'\end{tabularx}') 
-    markup.append(r'\end{center}') 
+    markup.extend(build_table(('X','r','r'), ((Cell('Balance brought forward'), Cell(), Cell('0')), (Cell(f'Sales'), Cell(), Cell(f'{sales:.2f}')),
+                                              (Cell(f'Purchases'), Cell(f'{purchases:.2f}'), Cell()), (Cell('Excess Income over Expenditure', True), Cell(), Cell(f'{sales-purchases:.2f}', True))))) 
     return markup
 
 markup = []
