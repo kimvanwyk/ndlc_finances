@@ -1,6 +1,8 @@
+from collections import defaultdict
 from datetime import date
 
 import data.mongo_setup
+from data.cakes import CakeStock
 from data.dues import Dues
 from data.members import Member
 from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
@@ -97,6 +99,27 @@ def build_balances_table():
     markup.extend(build_table(('X','r'), rows))
     return markup
 
+def double_list():
+    return [0,0]
+
+def build_cakes_table():
+    cs = CakeStock.objects().first()
+    d = defaultdict(double_list)
+    for t in cs.transfers[1:]:
+        d[t.responsible_party][0] += (t.number * (-1 if t.direction == 'return' else 1))
+    for t in cs.payments:
+        d[t.responsible_party][1] += t.amount
+    keys = list(d.keys())
+    keys.sort()
+    rows = [(Cell('Lion',bold=True), Cell('Cases Taken',bold=True), Cell('Total Amount',bold=True), Cell('Amount Paid',bold=True), Cell('Amount Owed',bold=True))]
+    for k in keys:
+        amt = d[k][0] * 110
+        rows.append((Cell(k), Cell(int(d[k][0]/12)), Cell(int(amt)), Cell(int(d[k][1])), Cell(int(amt-d[k][1]))))
+    markup = [f'# Cake Report as at {date.today():%d %b %Y}']
+    markup.extend(build_table(('X','r','r','r','r'), rows))
+    markup.append(f'**Cases in stock: {cs.balance()}**\n')
+    return markup
+
 markup = []
 markup.extend(build_transaction_table(Account.objects(name='charity').first(), '1810'))
 markup.extend(build_dues_table())
@@ -104,6 +127,8 @@ markup.append('\\newpage')
 markup.extend(build_transaction_table(Account.objects(name='admin').first(), '1810'))
 markup.extend(build_bar_table())
 markup.extend(build_balances_table())
+markup.append('\\newpage')
+markup.extend(build_cakes_table())
 with open('markup.txt', 'w') as fh:
     fh.write('\n'.join(markup))
     # python build_report.py && pandoc markup.txt --template no_frills_latex.txt -o markup.pdf
