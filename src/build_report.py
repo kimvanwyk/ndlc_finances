@@ -21,6 +21,7 @@ class Cell():
                 val = f'{self.val:.2f}'
             else:
                 val = str(self.val)
+            val = val.replace('&', '\&')
             if not self.bold:
                 return val
             else:
@@ -41,17 +42,17 @@ def build_table(cols, rows):
        
 def build_transaction_table(account, month):
     def add_row(date, desc, debit, credit):
-        debit = f'{debit:.2f}' if debit else ''
-        if debit and ('Balance' in desc):
-            debit = f'\\textbf{{{debit}}}'
-        credit = f'{credit:.2f}' if credit else ''
-        if credit and ('Balance' in desc):
-            credit = f'\\textbf{{{credit}}}'
-        out.append((date, desc, debit, credit))
+        debit = Cell(debit,flt=True) if debit else Cell()
+        if debit and desc.bold:
+            debit.bold = True
+        credit = Cell(credit, flt=True) if credit else Cell()
+        if credit and desc.bold:
+            credit.bold = True
+        rows.append((date, desc, debit, credit))
 
-    out = []
+    rows = [[Cell(txt,bold=True) for txt in ('Date', 'Description', 'Debit', 'Credit')]]
     (start_balance, end_balance) = account.current_balance(month)
-    add_row(start_balance.date.strftime('%d/%m/%y'), r'\textbf{Balance brought forward}', None, start_balance.amount)
+    add_row(Cell(start_balance.date.strftime('%d/%m/%y'),bold=True), Cell('Balance brought forward', bold=True), None, start_balance.amount)
     current_date = start_balance.date
     for t in (t for t in account.transactions if t.report_month == month):
         if current_date == t.trans_date:
@@ -59,21 +60,11 @@ def build_transaction_table(account, month):
         else:
             current_date = t.trans_date
             date = t.trans_date.strftime('%d/%m/%y')
-        add_row(date, t.description, t.amount if t.trans_type == 'payment' else None, t.amount if t.trans_type == 'deposit' else None)
-    add_row(end_balance.date.strftime('%d/%m/%y'), r'\textbf{Balance of account}', None, end_balance.amount)
+        add_row(Cell(date), Cell(t.description), t.amount if t.trans_type == 'payment' else None, t.amount if t.trans_type == 'deposit' else None)
+    add_row(Cell(end_balance.date.strftime('%d/%m/%y'),bold=True), Cell('Balance of account', bold=True), None, end_balance.amount)
 
     markup = [f'# {account.name.capitalize()} Account as at {end_balance.date:%d %b %Y}']
-    markup.append(r'\begin{center}')
-    markup.append(r'\begin{tabularx}{\textwidth}{|c|X|r|r|}')
-    markup.append('\hhline{|-|-|-|-|}')
-    markup.append(f"\\textbf{{Date}} & \\textbf{{Description}} & \\textbf{{Debit}} & \\textbf{{Credit}} \\\\")
-    for row in out:
-        markup.append('\hhline{|-|-|-|-|}')
-        desc = row[1].replace('&', r'\&')
-        markup.append(f"{row[0]} & {desc} & {row[2]} & {row[3]} \\\\")
-    markup.append('\hhline{|-|-|-|-|}')
-    markup.append(r'\end{tabularx}') 
-    markup.append(r'\end{center}') 
+    markup.extend(build_table(('c','X','r','r'), rows))
     return markup
 
 def build_dues_table():
