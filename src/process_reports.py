@@ -86,3 +86,8 @@ if 0:
 if 0:
     cakes = CakeStock.objects().first()
     print(cakes.balance())
+
+if 1:
+    acc = Account.objects(name='admin').first()
+    print(acc.bar_values())
+

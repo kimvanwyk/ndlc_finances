@@ -59,11 +59,32 @@ def build_dues_table():
     markup.append(r'\end{center}') 
     return markup
 
+def build_bar_table():
+    acc = Account.objects(name='admin').first()
+    (sales, purchases) = acc.bar_values()
+
+    markup = [f'# Bar Account as at {date.today():%d %b %Y}']
+    markup.append(r'\begin{center}')
+    markup.append(r'\begin{tabularx}{\textwidth}{|X|r|r|}')
+    markup.append('\hhline{|-|-|-|}')
+    markup.append(f"Balance brought forward & & 0 \\\\")
+    markup.append('\hhline{|-|-|-|}')
+    markup.append(f"Sales & & {sales:.2f} \\\\")
+    markup.append('\hhline{|-|-|-|}')
+    markup.append(f"Purchases & {purchases:.2f} & \\\\")
+    markup.append('\hhline{|-|-|-|}')
+    markup.append(f"\\textbf{{Excess Income over Expenditure}} & & \\textbf{{{sales-purchases:.2f}}} \\\\")
+    markup.append('\hhline{|-|-|-|}')
+    markup.append(r'\end{tabularx}') 
+    markup.append(r'\end{center}') 
+    return markup
+
 markup = []
 markup.extend(build_transaction_table(Account.objects(name='charity').first(), '1810'))
 markup.extend(build_dues_table())
 markup.append('\\newpage')
 markup.extend(build_transaction_table(Account.objects(name='admin').first(), '1810'))
+markup.extend(build_bar_table())
 with open('markup.txt', 'w') as fh:
     fh.write('\n'.join(markup))
     # python build_report.py && pandoc markup.txt --template no_frills_latex.txt -o markup.pdf
