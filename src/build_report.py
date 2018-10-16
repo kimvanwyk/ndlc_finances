@@ -88,12 +88,26 @@ def build_bar_table():
                                               (Cell(f'Purchases'), Cell(f'{purchases:.2f}'), Cell()), (Cell('Excess Income over Expenditure', True), Cell(), Cell(f'{sales-purchases:.2f}', True))))) 
     return markup
 
+def build_balances_table():
+    rows = []
+    total = 0
+    for acc in ('charity', 'admin'):
+        acc = Account.objects(name=acc).first()
+        bal = acc.current_balance()[1].amount
+        total += bal
+        rows.append((Cell(acc.name.capitalize()), Cell(f'{bal:.2f}')))
+    rows.append((Cell('Total',True), Cell(f'{total:.2f}')))
+    markup = [f'# Balances as at {date.today():%d %b %Y}']
+    markup.extend(build_table(('X','r'), rows))
+    return markup
+
 markup = []
 markup.extend(build_transaction_table(Account.objects(name='charity').first(), '1810'))
 markup.extend(build_dues_table())
 markup.append('\\newpage')
 markup.extend(build_transaction_table(Account.objects(name='admin').first(), '1810'))
 markup.extend(build_bar_table())
+markup.extend(build_balances_table())
 with open('markup.txt', 'w') as fh:
     fh.write('\n'.join(markup))
     # python build_report.py && pandoc markup.txt --template no_frills_latex.txt -o markup.pdf
