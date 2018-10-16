@@ -4,6 +4,7 @@ from datetime import date
 import data.mongo_setup
 from data.cakes import CakeStock
 from data.dues import Dues
+from data.market import MarketMonth
 from data.members import Member
 from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
 
@@ -120,16 +121,28 @@ def build_cakes_table():
     markup.append(f'**Cases in stock: {cs.balance()}**\n')
     return markup
 
-markup = []
-markup.extend(build_transaction_table(Account.objects(name='charity').first(), '1810'))
-markup.extend(build_dues_table())
-markup.append('\\newpage')
-markup.extend(build_transaction_table(Account.objects(name='admin').first(), '1810'))
-markup.extend(build_bar_table())
-markup.extend(build_balances_table())
-markup.append('\\newpage')
-markup.extend(build_cakes_table())
-with open('markup.txt', 'w') as fh:
-    fh.write('\n'.join(markup))
-    # python build_report.py && pandoc markup.txt --template no_frills_latex.txt -o markup.pdf
-        
+def build_market_table():
+    rows = []
+    mms = MarketMonth.objects.order_by('date')
+    for mm in mms:
+        for md in mm.days:
+            rows.append((Cell(f'{md.date:%d/%m/%y}'), Cell(f'{"/".join([m.short_name() for m in md.members])}'), 
+                         Cell(md.income,flt=True), Cell(md.expenses,flt=True), Cell(md.income-md.expenses,flt=True)))
+    markup = [f'# Market Report as at {date.today():%d %b %Y}']
+    markup.extend(build_table(('c','X','r','r','r'), rows))
+    return markup
+
+if 1:
+    markup = []
+    markup.extend(build_transaction_table(Account.objects(name='charity').first(), '1810'))
+    markup.extend(build_dues_table())
+    markup.append('\\newpage')
+    markup.extend(build_transaction_table(Account.objects(name='admin').first(), '1810'))
+    markup.extend(build_bar_table())
+    markup.extend(build_balances_table())
+    markup.append('\\newpage')
+    markup.extend(build_market_table())
+    markup.extend(build_cakes_table())
+    with open('markup.txt', 'w') as fh:
+        fh.write('\n'.join(markup))
+        # python build_report.py && pandoc markup.txt --template no_frills_latex.txt -o markup.pdf
