@@ -2,6 +2,7 @@ import data.mongo_setup
 
 #from data.dues import Dues
 #from data.members import Member
+from data.cakes import CakeTransfer, CakeStock
 from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
 from data.market import MarketMonth, MarketDay, list_market_months
 from data.members import Member, list_members
@@ -65,6 +66,19 @@ class MarketDayForm(FlaskForm):
     expenses = DecimalField(label='Expenses', default=0)
     submit = SubmitField(label='Submit Market Day Changes')
 
+class CakeTransferForm(FlaskForm):
+    date = DateField(label='Date', default=date.today())
+    number = IntegerField(label='Number of Cakes', default=12)
+    responsible_party = StringField(label='Responsible Party')
+    direction = RadioField(label='Transfer Direction', choices = [(c,c) for c in ('withdrawal', 'return')], default='withdrawal')
+    submit = SubmitField(label='Submit Cake Transfer')
+
+class CakePaymentForm(FlaskForm):
+    date = DateField(label='Date', default=date.today())
+    amount = DecimalField(label='Amount')
+    responsible_party = StringField(label='Responsible Party')
+    submit = SubmitField(label='Submit Cake Payment')
+
 account_map = {'charity': (Account, Transaction, TransactionForm),
                'admin': (AdminAccount, AdminTransaction, AdminTransactionForm)
                }
@@ -76,6 +90,7 @@ def index():
         links.append((f'Add Transaction for {acc.name.capitalize()} Account', url_for('add_transaction', account=acc.name)))
     links.append((f'Add Market Month', url_for('add_market_month')))
     links.append((f'Edit Market Month', url_for('select_market_month',action='edit')))
+    links.append((f'Add Cake Transfer', url_for('add_cake_transfer')))
     return render_template('index.html', links=links)
 
 @app.route('/balances/')
@@ -207,4 +222,15 @@ def edit_market_day(month, day):
         return redirect(url_for('index'))
     return render_template('basic_form.html', form = form, caller='edit_market_day', args={'month':month, 'day':day})
 
-        
+@app.route('/cake/transfer/add/', methods=('GET', 'POST'))
+def add_cake_transfer():
+    form = CakeTransferForm()
+    if form.validate_on_submit():
+        print({k:v for (k,v) in form.data.items() if k not in ('csrf_token','submit')})
+        ct = CakeTransfer(**{k:v for (k,v) in form.data.items() if k not in ('csrf_token','submit')})
+        cs = CakeStock.objects().first()
+        cs.transfers.append(ct)
+        cs.save()
+        flash(f'Cake transfer recorded. Balance: {cs.balance()} cases.')
+        return redirect(url_for('index'))
+    return render_template('basic_form.html', form = form, caller='add_cake_transfer', args={})
