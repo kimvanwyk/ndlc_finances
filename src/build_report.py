@@ -73,17 +73,10 @@ def build_transaction_table(account, month):
 
 def build_dues_table():
     markup = [f'# Dues as at {date.today():%d %b %Y}']
-    markup.append(r'\begin{center}')
-    markup.append(r'\begin{tabularx}{\textwidth}{|X|r|r|r|}')
-    markup.append('\hhline{|-|-|-|-|}')
-    markup.append(f"\\textbf{{Name}} & \\textbf{{Total}} & \\textbf{{Discount}} & \\textbf{{Paid}} \\\\")
-    markup.append('\hhline{|-|-|-|-|}')
-
+    rows = [(Cell('Name', True), Cell('Total', True), Cell('Discount', True), Cell('Paid'))]
     for m in Member.objects().order_by("last_name"):
-        markup.append(f"{m.last_name}, {m.first_name} & {m.dues.total:.2f} & {m.dues.discount:.2f} & {m.dues.paid:.2f} \\\\")
-        markup.append('\hhline{|-|-|-|-|}')
-    markup.append(r'\end{tabularx}') 
-    markup.append(r'\end{center}') 
+        rows.append((Cell(f'{m.last_name}, {m.first_name}'), Cell(f'{m.dues.total:.2f}'), Cell(f'{m.dues.discount:.2f}'), Cell(f'{m.dues.paid:.2f}')))
+    markup.extend(build_table(('X','r','r','r'), rows))
     return markup
 
 def build_bar_table():
