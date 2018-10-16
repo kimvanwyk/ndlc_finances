@@ -80,7 +80,7 @@ def build_dues_table():
     markup = [f'# Dues as at {date.today():%d %b %Y}']
     rows = [(Cell('Name', bold=True), Cell('Total', bold=True), Cell('Discount', bold=True), Cell('Paid', bold=True))]
     for m in Member.objects().order_by("last_name"):
-        rows.append((Cell(f'{m.last_name}, {m.first_name}'), Cell(f'{m.dues.total:.2f}'), Cell(f'{m.dues.discount:.2f}'), Cell(f'{m.dues.paid:.2f}')))
+        rows.append((Cell(f'{m.last_name}, {m.first_name}'), Cell(m.dues.total, flt=True), Cell(m.dues.discount, flt=True), Cell(m.dues.paid, flt=True)))
     markup.extend(build_table(('X','r','r','r'), rows))
     return markup
 
@@ -89,8 +89,8 @@ def build_bar_table():
     (sales, purchases) = acc.bar_values()
 
     markup = [f'# Bar Account as at {date.today():%d %b %Y}']
-    markup.extend(build_table(('X','r','r'), ((Cell('Balance brought forward'), Cell(), Cell('0')), (Cell(f'Sales'), Cell(), Cell(f'{sales:.2f}')),
-                                              (Cell(f'Purchases'), Cell(f'{purchases:.2f}'), Cell()), (Cell('Excess Income over Expenditure', bold=True), Cell(), Cell(f'{sales-purchases:.2f}', bold=True))))) 
+    markup.extend(build_table(('X','r','r'), ((Cell('Balance brought forward'), Cell(), Cell('0')), (Cell(f'Sales'), Cell(), Cell(sales, flt=True)),
+                                              (Cell(f'Purchases'), Cell(purchases, flt=True), Cell()), (Cell('Excess Income over Expenditure', bold=True), Cell(), Cell(sales-purchases, bold=True, flt=True))))) 
     return markup
 
 def build_balances_table():
@@ -100,8 +100,8 @@ def build_balances_table():
         acc = Account.objects(name=acc).first()
         bal = acc.current_balance()[1].amount
         total += bal
-        rows.append((Cell(acc.name.capitalize()), Cell(f'{bal:.2f}')))
-    rows.append((Cell('Total',bold=True), Cell(f'{total:.2f}')))
+        rows.append((Cell(acc.name.capitalize()), Cell(bal, flt=True)))
+    rows.append((Cell('Total',bold=True), Cell(total, flt=True)))
     markup = [f'# Balances as at {date.today():%d %b %Y}']
     markup.extend(build_table(('X','r'), rows))
     return markup
