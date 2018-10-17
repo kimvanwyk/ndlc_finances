@@ -66,12 +66,12 @@ def build_transaction_table(account, month):
         add_row(Cell(date), Cell(t.description), t.amount if t.trans_type == 'payment' else None, t.amount if t.trans_type == 'deposit' else None)
     add_row(Cell(end_balance.date.strftime('%d/%m/%y'),bold=True), Cell('Balance of account', bold=True), None, end_balance.amount)
 
-    markup = [f'# {account.name.capitalize()} Account as at {end_balance.date:%d %b %Y}']
+    markup = [f'# {account.name.capitalize()} Account']
     markup.extend(build_table(('c','X','r','r'), rows))
     return markup
 
 def build_dues_table():
-    markup = [f'# Dues as at {date.today():%d %b %Y}']
+    markup = [f'# Dues']
     rows = [(Cell('Name', bold=True), Cell('Total', bold=True), Cell('Discount', bold=True), Cell('Paid', bold=True))]
     for m in Member.objects().order_by("last_name"):
         rows.append((Cell(f'{m.last_name}, {m.first_name}'), Cell(m.dues.total, flt=True), Cell(m.dues.discount, flt=True), Cell(m.dues.paid, flt=True)))
@@ -82,7 +82,7 @@ def build_bar_table():
     acc = Account.objects(name='admin').first()
     (sales, purchases) = acc.bar_values()
 
-    markup = [f'# Bar Account as at {date.today():%d %b %Y}']
+    markup = [f'# Bar Account']
     markup.extend(build_table(('X','r','r'), ((Cell('Balance brought forward'), Cell(), Cell('0')), (Cell(f'Sales'), Cell(), Cell(sales, flt=True)),
                                               (Cell(f'Purchases'), Cell(purchases, flt=True), Cell()), (Cell('Excess Income over Expenditure', bold=True), Cell(), Cell(sales-purchases, bold=True, flt=True))))) 
     return markup
@@ -96,7 +96,7 @@ def build_balances_table():
         total += bal
         rows.append((Cell(acc.name.capitalize()), Cell(bal, flt=True)))
     rows.append((Cell('Total',bold=True), Cell(total, flt=True)))
-    markup = [f'# Balances as at {date.today():%d %b %Y}']
+    markup = [f'# Balances']
     markup.extend(build_table(('X','r'), rows))
     return markup
 
@@ -116,7 +116,7 @@ def build_cakes_table():
     for k in keys:
         amt = d[k][0] * 110
         rows.append((Cell(k), Cell(int(d[k][0]/12)), Cell(int(amt)), Cell(int(d[k][1])), Cell(int(amt-d[k][1]))))
-    markup = [f'# Cake Report as at {date.today():%d %b %Y}']
+    markup = [f'# Christmas Cakes']
     markup.extend(build_table(('X','r','r','r','r'), rows))
     markup.append(f'**Cases in stock: {cs.balance()}**\n')
     return markup
@@ -150,12 +150,12 @@ def build_market_table():
     rows.append((Cell(), Cell(f'YTD TOTALS',bold=True),
                  Cell(tot_income,bold=True,flt=True), Cell(tot_expenses,bold=True,flt=True), Cell(tot_income-tot_expenses,bold=True,flt=True)))
         
-    markup = [f'# Market Report as at {date.today():%d %b %Y}']
+    markup = [f'# Market']
     markup.extend(build_table(('c','X','r','r','r'), rows))
     return markup
 
 if 1:
-    markup = []
+    markup = [f'<<heading:North Durban Lions Club Finance Report as at {date.today():%d %b %Y}>>\n']
     markup.extend(build_transaction_table(Account.objects(name='charity').first(), '1810'))
     markup.extend(build_dues_table())
     markup.append('\\newpage')
