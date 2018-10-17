@@ -167,4 +167,4 @@ if 1:
     markup.extend(build_cakes_table())
     with open('markup.txt', 'w') as fh:
         fh.write('\n'.join(markup))
-        # python build_report.py && pandoc markup.txt --template no_frills_latex.txt -o markup.pdf
+        # python build_report.py && run_kppe.sh --templates_dir=$PWD/templates/ no_frills_latex markup.txt
