@@ -122,12 +122,34 @@ def build_cakes_table():
     return markup
 
 def build_market_table():
-    rows = []
     mms = MarketMonth.objects.order_by('date')
+    tot_income = 0
+    tot_expenses = 0
+    rows = [((Cell('Date',bold=True), Cell(f'On Duty',bold=True),
+                 Cell('Income',bold=True), Cell('Expenses',bold=True), Cell('Net',bold=True)))]
     for mm in mms:
+        income = 0
+        expenses = 0
         for md in mm.days:
-            rows.append((Cell(f'{md.date:%d/%m/%y}'), Cell(f'{"/".join([m.short_name() for m in md.members])}'), 
+            if md.traded:
+                on_duty = "/".join([m.short_name() for m in md.members])
+            else:
+                on_duty = 'Did not trade'
+            rows.append((Cell(f'{md.date:%d/%m/%y}'), Cell(f'{on_duty}'), 
                          Cell(md.income,flt=True), Cell(md.expenses,flt=True), Cell(md.income-md.expenses,flt=True)))
+            income += md.income
+            expenses += md.expenses
+        rows.append((Cell(), Cell('Additional Expenses'),
+                     Cell(), Cell(mm.expenses,flt=True), Cell()))
+        expenses += mm.expenses
+        month = mm.date.strftime('%B').upper()
+        rows.append((Cell(), Cell(f'{month} TOTALS',bold=True),
+                     Cell(income,bold=True,flt=True), Cell(expenses,bold=True,flt=True), Cell(income-expenses,bold=True,flt=True)))
+        tot_income += income
+        tot_expenses += expenses
+    rows.append((Cell(), Cell(f'YTD TOTALS',bold=True),
+                 Cell(tot_income,bold=True,flt=True), Cell(tot_expenses,bold=True,flt=True), Cell(tot_income-tot_expenses,bold=True,flt=True)))
+        
     markup = [f'# Market Report as at {date.today():%d %b %Y}']
     markup.extend(build_table(('c','X','r','r','r'), rows))
     return markup
