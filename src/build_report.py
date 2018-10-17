@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import date
+from decimal import Decimal
 
 import data.mongo_setup
 from data.cakes import CakeStock
@@ -16,11 +17,10 @@ data.mongo_setup.global_init()
 class Cell():
     val = attr.ib(default='')
     bold = attr.ib(default=False)
-    flt = attr.ib(default=False)
 
     def __getattr__(self, name):
         if name == 'value':
-            if self.flt:
+            if type(self.val) is Decimal:
                 val = f'{self.val:.2f}'
             else:
                 val = str(self.val)
@@ -45,10 +45,10 @@ def build_table(cols, rows):
        
 def build_transaction_table(account, month):
     def add_row(date, desc, debit, credit):
-        debit = Cell(debit,flt=True) if debit else Cell()
+        debit = Cell(debit) if debit else Cell()
         if debit and desc.bold:
             debit.bold = True
-        credit = Cell(credit, flt=True) if credit else Cell()
+        credit = Cell(credit) if credit else Cell()
         if credit and desc.bold:
             credit.bold = True
         rows.append((date, desc, debit, credit))
@@ -74,7 +74,7 @@ def build_dues_table():
     markup = [f'# Dues']
     rows = [(Cell('Name', bold=True), Cell('Total', bold=True), Cell('Discount', bold=True), Cell('Paid', bold=True))]
     for m in Member.objects().order_by("last_name"):
-        rows.append((Cell(f'{m.last_name}, {m.first_name}'), Cell(m.dues.total, flt=True), Cell(m.dues.discount, flt=True), Cell(m.dues.paid, flt=True)))
+        rows.append((Cell(f'{m.last_name}, {m.first_name}'), Cell(m.dues.total), Cell(m.dues.discount), Cell(m.dues.paid)))
     markup.extend(build_table(('X','r','r','r'), rows))
     return markup
 
@@ -83,8 +83,8 @@ def build_bar_table():
     (sales, purchases) = acc.bar_values()
 
     markup = [f'# Bar Account']
-    markup.extend(build_table(('X','r','r'), ((Cell('Balance brought forward'), Cell(), Cell('0')), (Cell(f'Sales'), Cell(), Cell(sales, flt=True)),
-                                              (Cell(f'Purchases'), Cell(purchases, flt=True), Cell()), (Cell('Excess Income over Expenditure', bold=True), Cell(), Cell(sales-purchases, bold=True, flt=True))))) 
+    markup.extend(build_table(('X','r','r'), ((Cell('Balance brought forward'), Cell(), Cell('0')), (Cell(f'Sales'), Cell(), Cell(sales)),
+                                              (Cell(f'Purchases'), Cell(purchases), Cell()), (Cell('Excess Income over Expenditure', bold=True), Cell(), Cell(sales-purchases, bold=True))))) 
     return markup
 
 def build_balances_table():
@@ -94,8 +94,8 @@ def build_balances_table():
         acc = Account.objects(name=acc).first()
         bal = acc.current_balance()[1].amount
         total += bal
-        rows.append((Cell(acc.name.capitalize()), Cell(bal, flt=True)))
-    rows.append((Cell('Total',bold=True), Cell(total, flt=True)))
+        rows.append((Cell(acc.name.capitalize()), Cell(bal)))
+    rows.append((Cell('Total',bold=True), Cell(total)))
     markup = [f'# Balances']
     markup.extend(build_table(('X','r'), rows))
     return markup
@@ -136,19 +136,19 @@ def build_market_table():
             else:
                 on_duty = 'Did not trade'
             rows.append((Cell(f'{md.date:%d/%m/%y}'), Cell(f'{on_duty}'), 
-                         Cell(md.income,flt=True), Cell(md.expenses,flt=True), Cell(md.income-md.expenses,flt=True)))
+                         Cell(md.income), Cell(md.expenses), Cell(md.income-md.expenses)))
             income += md.income
             expenses += md.expenses
         rows.append((Cell(), Cell('Additional Expenses'),
-                     Cell(), Cell(mm.expenses,flt=True), Cell()))
+                     Cell(), Cell(mm.expenses), Cell()))
         expenses += mm.expenses
         month = mm.date.strftime('%B').upper()
         rows.append((Cell(), Cell(f'{month} TOTALS',bold=True),
-                     Cell(income,bold=True,flt=True), Cell(expenses,bold=True,flt=True), Cell(income-expenses,bold=True,flt=True)))
+                     Cell(income,bold=True), Cell(expenses,bold=True), Cell(income-expenses,bold=True)))
         tot_income += income
         tot_expenses += expenses
     rows.append((Cell(), Cell(f'YTD TOTALS',bold=True),
-                 Cell(tot_income,bold=True,flt=True), Cell(tot_expenses,bold=True,flt=True), Cell(tot_income-tot_expenses,bold=True,flt=True)))
+                 Cell(tot_income,bold=True), Cell(tot_expenses,bold=True), Cell(tot_income-tot_expenses,bold=True)))
         
     markup = [f'# Market']
     markup.extend(build_table(('c','X','r','r','r'), rows))
