@@ -83,6 +83,9 @@ account_map = {'charity': (Account, Transaction, TransactionForm),
                'admin': (AdminAccount, AdminTransaction, AdminTransactionForm)
                }
 
+cake_transaction_map = {'transfer': (CakeTransferForm, CakeTransfer),
+                        'payment': (CakePaymentForm, CakePayment)}
+
 @app.route('/')
 def index():
     links = [('Balances', url_for('balances'))]
@@ -90,8 +93,8 @@ def index():
         links.append((f'Add Transaction for {acc.name.capitalize()} Account', url_for('add_transaction', account=acc.name)))
     links.append((f'Add Market Month', url_for('add_market_month')))
     links.append((f'Edit Market Month', url_for('select_market_month',action='edit')))
-    links.append((f'Add Cake Transfer', url_for('add_cake_transfer')))
-    links.append((f'Add Cake Payment', url_for('add_cake_payment')))
+    links.append((f'Add Cake Transfer', url_for('add_cake_transaction',transaction='transfer')))
+    links.append((f'Add Cake Payment', url_for('add_cake_transaction',transaction='payment')))
     return render_template('index.html', links=links)
 
 @app.route('/balances/')
@@ -223,27 +226,42 @@ def edit_market_day(month, day):
         return redirect(url_for('index'))
     return render_template('basic_form.html', form = form, caller='edit_market_day', args={'month':month, 'day':day})
 
-@app.route('/cake/transfer/add/', methods=('GET', 'POST'))
-def add_cake_transfer():
-    form = CakeTransferForm()
-    if form.validate_on_submit():
-        print({k:v for (k,v) in form.data.items() if k not in ('csrf_token','submit')})
-        ct = CakeTransfer(**{k:v for (k,v) in form.data.items() if k not in ('csrf_token','submit')})
-        cs = CakeStock.objects().first()
-        cs.transfers.append(ct)
-        cs.save()
-        flash(f'Cake transfer recorded. Balance: {cs.balance()} cases.')
+@app.route('/cake/<transaction>/add/', methods=('GET', 'POST'))
+def add_cake_transaction(transaction):
+    if transaction not in cake_transaction_map:
+        flash(f'("{transaction}" is not a valid transaction for Christmas cakes')
         return redirect(url_for('index'))
-    return render_template('basic_form.html', form = form, caller='add_cake_transfer', args={})
+    form = cake_transaction_map[transaction][0]()
+    if form.validate_on_submit():
+        ct = cake_transaction_map[transaction][1](**{k:v for (k,v) in form.data.items() if k not in ('csrf_token','submit')})
+        cs = CakeStock.objects().first()
+        attr = getattr(cs, f'{transaction}s')
+        attr.append(ct)
+        cs.save()
+        flash(f'Cake {transaction} recorded. Balance: {cs.balance()} cases.')
+        return redirect(url_for('index'))
+    return render_template('basic_form.html', form = form, caller=f'add_cake_transaction', args={'transaction':transaction})
 
-@app.route('/cake/payment/add/', methods=('GET', 'POST'))
-def add_cake_payment():
-    form = CakePaymentForm()
-    if form.validate_on_submit():
-        ct = CakePayment(**{k:v for (k,v) in form.data.items() if k not in ('csrf_token','submit')})
-        cs = CakeStock.objects().first()
-        cs.payments.append(ct)
-        cs.save()
-        flash(f'Cake payment recorded.')
-        return redirect(url_for('index'))
-    return render_template('basic_form.html', form = form, caller='add_cake_payment', args={})
+# @app.route('/cake/transfer/add/', methods=('GET', 'POST'))
+# def add_cake_transfer():
+#     form = CakeTransferForm()
+#     if form.validate_on_submit():
+#         ct = CakeTransfer(**{k:v for (k,v) in form.data.items() if k not in ('csrf_token','submit')})
+#         cs = CakeStock.objects().first()
+#         cs.transfers.append(ct)
+#         cs.save()
+#         flash(f'Cake transfer recorded. Balance: {cs.balance()} cases.')
+#         return redirect(url_for('index'))
+#     return render_template('basic_form.html', form = form, caller='add_cake_transfer', args={})
+
+# @app.route('/cake/payment/add/', methods=('GET', 'POST'))
+# def add_cake_payment():
+#     form = CakePaymentForm()
+#     if form.validate_on_submit():
+#         ct = CakePayment(**{k:v for (k,v) in form.data.items() if k not in ('csrf_token','submit')})
+#         cs = CakeStock.objects().first()
+#         cs.payments.append(ct)
+#         cs.save()
+#         flash(f'Cake payment recorded.')
+#         return redirect(url_for('index'))
+#     return render_template('basic_form.html', form = form, caller='add_cake_payment', args={})
