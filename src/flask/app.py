@@ -241,27 +241,3 @@ def add_cake_transaction(transaction):
         flash(f'Cake {transaction} recorded. Balance: {cs.balance()} cases.')
         return redirect(url_for('index'))
     return render_template('basic_form.html', form = form, caller=f'add_cake_transaction', args={'transaction':transaction})
-
-# @app.route('/cake/transfer/add/', methods=('GET', 'POST'))
-# def add_cake_transfer():
-#     form = CakeTransferForm()
-#     if form.validate_on_submit():
-#         ct = CakeTransfer(**{k:v for (k,v) in form.data.items() if k not in ('csrf_token','submit')})
-#         cs = CakeStock.objects().first()
-#         cs.transfers.append(ct)
-#         cs.save()
-#         flash(f'Cake transfer recorded. Balance: {cs.balance()} cases.')
-#         return redirect(url_for('index'))
-#     return render_template('basic_form.html', form = form, caller='add_cake_transfer', args={})
-
-# @app.route('/cake/payment/add/', methods=('GET', 'POST'))
-# def add_cake_payment():
-#     form = CakePaymentForm()
-#     if form.validate_on_submit():
-#         ct = CakePayment(**{k:v for (k,v) in form.data.items() if k not in ('csrf_token','submit')})
-#         cs = CakeStock.objects().first()
-#         cs.payments.append(ct)
-#         cs.save()
-#         flash(f'Cake payment recorded.')
-#         return redirect(url_for('index'))
-#     return render_template('basic_form.html', form = form, caller='add_cake_payment', args={})
