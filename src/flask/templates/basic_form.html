@@ -4,6 +4,7 @@
 {% for field in form %}
     {% if field.widget.input_type != 'hidden' %}
         <tr><td>{%if field.widget.input_type != 'submit' %}{{ field.label }}{% endif %}</td><td>{% if 'members' not in field.name %}{{ field }}{% else %}{{ field(size=20)}}{% endif %}</td></tr>
+        {% if field.errors %}{% for error in field.errors %}<tr><td>{% if loop.first %}Errors:{% endif %}</td><td>{{ error }}</td>{% endfor %}{% endif %}
     {% endif %}
 {% endfor %}
 </table>
