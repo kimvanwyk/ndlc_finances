@@ -4,16 +4,16 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-ptpython = "*"
 pymongo = "*"
 mongoengine = "*"
-xlrd = "*"
-openpyxl = "*"
 attrs = "*"
 flask = "*"
 flask-wtf = "*"
 
 [dev-packages]
+ptpython = "*"
+xlrd = "*"
+openpyxl = "*"
 
 [requires]
 python_version = "3.6"
