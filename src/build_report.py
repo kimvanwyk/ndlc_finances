@@ -160,7 +160,7 @@ def build_market_table():
     markup.extend(build_table(('c','X','r','r','r'), rows))
     return markup
 
-if 1:
+def build_markup_file():
     markup = [f'<<heading:North Durban Lions Club Finance Report as at {date.today():%d %b %Y}>>\n']
     markup.extend(build_transaction_table(Account.objects(name='charity').first(), '1810'))
     markup.extend(build_dues_table())
@@ -171,6 +171,12 @@ if 1:
     markup.append('\\newpage')
     markup.extend(build_market_table())
     markup.extend(build_cakes_table())
+    return '\n'.join(markup)
+
+def write_markup_file():
     with open('markup.txt', 'w') as fh:
-        fh.write('\n'.join(markup))
+        fh.write(write_markup_file())
         # python build_report.py && run_kppe.sh --templates_dir=$PWD/templates/ no_frills_latex markup.txt
+
+if __name__ == '__main__':
+    write_markup_file()
