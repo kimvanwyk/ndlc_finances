@@ -90,7 +90,7 @@ def build_bar_table():
 
     markup = [f'# Bar Account']
     markup.extend(build_table(('X','r','r'), ((c('Balance brought forward'), c(), c('0')), (c(f'Sales'), c(), c(sales)),
-                                              (c(f'Purchases'), b(purchases), c()), (b('Excess Income over Expenditure'), c(), c(sales-purchases))))) 
+                                              (c(f'Purchases'), c(purchases), c()), (b('Excess Income over Expenditure'), c(), b(sales-purchases))))) 
     return markup
 
 def build_balances_table():
@@ -101,7 +101,7 @@ def build_balances_table():
         bal = acc.current_balance()[1].amount
         total += bal
         rows.append((c(acc.name.capitalize()), c(bal)))
-    rows.append((b('Total'), c(total)))
+    rows.append((b('Total'), b(total)))
     markup = [f'# Balances']
     markup.extend(build_table(('X','r'), rows))
     return markup
