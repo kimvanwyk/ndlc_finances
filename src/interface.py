@@ -18,8 +18,12 @@ def build(verbose=True):
         print()
         print(ret)
     if retcode == 0:
+        try:
+            os.remove(f'/io/{fn}.pdf')
+        except Exception as e:
+            pass
         shutil.move(f'/app/{fn}.pdf', '/io')
-    return (ret, retcode)
+    return (ret, retcode, f'{fn}.pdf')
 
 
 if __name__ == '__main__':
@@ -33,8 +37,8 @@ if __name__ == '__main__':
         rec.append(data)
         s = ''.join(str(rec))
         if 'build' in s:
-            (ret, retcode) = build()
-            sock.sendto(b'done' if retcode == 0 else b'error', addr)
+            (ret, retcode, fn) = build()
+            sock.sendto(bytes(fn, 'utf8') if retcode == 0 else b'error', addr)
             rec = []
         if 'quit' in s:
             break
