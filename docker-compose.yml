@@ -10,7 +10,7 @@ services:
     restart: always
     ports:
       - 8081:8081
-  report-bulder:
+  report-builder:
     image: kimvanwyk/ndlc_finance_report
     restart: always
     ports:
@@ -19,3 +19,15 @@ services:
       - /tmp:/io
     environment:
       - MONGODB_HOST=mongo
+    volumes:
+      - /tmp:/tmp
+  flask:
+    image: kimvanwyk/ndlc_finance_flask
+    restart: always
+    ports:
+      - 5000:80
+    environment:
+      - MONGODB_HOST=mongo
+      - REPORT_HOST=report-builder
+    volumes:
+      - /tmp:/tmp

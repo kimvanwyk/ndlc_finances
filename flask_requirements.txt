@@ -1,0 +1,5 @@
+-i https://pypi.org/simple
+attrs==18.2.0
+mongoengine==0.15.3
+pymongo==3.7.2
+flask-wtf==0.14.2
