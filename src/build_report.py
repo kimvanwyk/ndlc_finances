@@ -175,7 +175,7 @@ def build_markup_file():
 
 def write_markup_file():
     with open('markup.txt', 'w') as fh:
-        fh.write(write_markup_file())
+        fh.write(build_markup_file())
         # python build_report.py && run_kppe.sh --templates_dir=$PWD/templates/ no_frills_latex markup.txt
 
 if __name__ == '__main__':

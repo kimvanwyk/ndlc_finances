@@ -24,6 +24,6 @@ RUN pip3 install -r /app/report_requirements.txt
 
 ENV LANG C.UTF-8
 
-ENTRYPOINT ["/bin/bash", "/app/exec.sh"]
+ENTRYPOINT ["python3.6", "interface.py"]
 # , "python3.6", "kppe.py", "build", "--abbreviations-dir", "/abbreviations", "--templates-dir", "/templates", "--images-dir", "/images", "--ref-tags-dir", "/ref_tags", "no_frills_latex", "markup.txt;"date +%y%m%d
 # ENTRYPOINT ["python3.6 build_report.py; python3.6 kppe.py build --abbreviations-dir /abbreviations --templates-dir /templates --images-dir /images --ref-tags-dir /ref_tags no_frills_latex markup.txt;"]

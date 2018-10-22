@@ -10,3 +10,12 @@ services:
     restart: always
     ports:
       - 8081:8081
+  report-bulder:
+    image: kimvanwyk/ndlc_finance_report
+    restart: always
+    ports:
+      - 5001:5001/udp
+    volumes:
+      - /home/kimv/src/ndlc_finances:/io
+    environment:
+      - MONGODB_HOST=mongo
