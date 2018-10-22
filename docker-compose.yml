@@ -16,6 +16,6 @@ services:
     ports:
       - 5001:5001/udp
     volumes:
-      - /home/kimv/src/ndlc_finances:/io
+      - /tmp:/io
     environment:
       - MONGODB_HOST=mongo

@@ -12,7 +12,8 @@ UDP_PORT = 5001
 def build(verbose=True):
     text = build_report.build_markup_file()
     fn = f'{date.today():%y%m%d}_ndlc_finance_report'
-    (ret, retcode) = kppe.build_pdf(text, os.path.abspath('templates/no_frills_latex.txt'), fn, toc=False)
+    text = kppe.markup(text)
+    (ret, retcode) = kppe.build_document(text, os.path.abspath('templates/no_frills_latex.txt'), fn, toc=False)
     if verbose:
         print('Pandoc output:')
         print()
@@ -35,7 +36,7 @@ if __name__ == '__main__':
     while True:
         (data, addr) = sock.recvfrom(1024)
         rec.append(data)
-        s = ''.join(str(rec))
+        s = ''.join([str(r) for r in rec])
         if 'build' in s:
             (ret, retcode, fn) = build()
             sock.sendto(bytes(fn, 'utf8') if retcode == 0 else b'error', addr)

@@ -8,9 +8,13 @@ from data.members import Member, list_members
 from forms import *
 from utils import report_months
 
-from flask import Flask, render_template, url_for, redirect, flash
+from flask import Flask, render_template, url_for, redirect, flash, send_from_directory
 
 from datetime import date
+import os, os.path
+import socket
+
+UDP_PORT = 5001
 
 app = Flask(__name__)
 with open('secret_key.txt', 'rb') as fh:
@@ -34,6 +38,7 @@ def index():
     links.append((f'Edit Market Month', url_for('select_market_month',action='edit')))
     links.append((f'Add Cake Transfer', url_for('add_cake_transaction',transaction='transfer')))
     links.append((f'Add Cake Payment', url_for('add_cake_transaction',transaction='payment')))
+    links.append((f'Download Report', url_for('build_report')))
     return render_template('index.html', links=links)
 
 @app.route('/balances/')
@@ -180,3 +185,24 @@ def add_cake_transaction(transaction):
         flash(f'Cake {transaction} recorded. Balance: {cs.balance()} cases.')
         return redirect(url_for('index'))
     return render_template('basic_form.html', form = form, caller=f'add_cake_transaction', args={'transaction':transaction})
+
+@app.route('/report/')
+def build_report():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM )
+    host = os.getenv('REPORT_HOST', 'localhost')
+    sock.setblocking(1)
+    sock.connect((host, UDP_PORT))
+    sock.send('build'.encode()) 
+    rec = []
+    while True:
+        (data, addr) = sock.recvfrom(1024)
+        rec.append(data.decode())
+        s = ''.join([r for r in rec])
+        if '.pdf' in s:
+            flash(f'Report file "{s}" downloaded')
+            print(s, os.path.join('/tmp', s), os.path.exists(os.path.join('/tmp', s)))
+            return send_from_directory('/tmp', s, as_attachment=True)
+        elif 'error' in s:
+            flash(f'An error occured building the report')
+            return redirect(url_for('index'))
+            
