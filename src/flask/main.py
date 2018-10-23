@@ -201,7 +201,7 @@ def build_report():
         if '.pdf' in s:
             flash(f'Report file "{s}" downloaded')
             print(s, os.path.join('/tmp', s), os.path.exists(os.path.join('/tmp', s)))
-            return send_from_directory('/tmp', s, as_attachment=True)
+            return send_from_directory('/io', s, as_attachment=True)
         elif 'error' in s:
             flash(f'An error occured building the report')
             return redirect(url_for('index'))

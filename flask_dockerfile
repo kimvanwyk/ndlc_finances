@@ -4,4 +4,5 @@ COPY ./src/flask /app
 COPY ./src/data /app/data
 COPY ./src/utils /app/utils
 COPY flask_requirements.txt /app
+VOLUME /io
 RUN pip install -r /app/flask_requirements.txt

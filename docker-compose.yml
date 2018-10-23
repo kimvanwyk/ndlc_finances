@@ -1,4 +1,6 @@
 version: '3.1'
+volumes:
+  io:
 services:
   mongo:
     image: mongo
@@ -16,11 +18,9 @@ services:
     ports:
       - 5001:5001/udp
     volumes:
-      - /tmp:/io
+      - io:/io
     environment:
       - MONGODB_HOST=mongo
-    volumes:
-      - /tmp:/tmp
   flask:
     image: kimvanwyk/ndlc_finance_flask
     restart: always
@@ -30,4 +30,4 @@ services:
       - MONGODB_HOST=mongo
       - REPORT_HOST=report-builder
     volumes:
-      - /tmp:/tmp
+      - io:/io
