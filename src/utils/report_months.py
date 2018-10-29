@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 def get_report_months():
-    today = date.today()
+    today = date.today() + timedelta(weeks=4)
     months = [date(today.year, today.month, 1)]
     while True:
         year = months[-1].year
