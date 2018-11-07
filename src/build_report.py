@@ -79,10 +79,10 @@ def build_transaction_table(account, month):
 
 def build_dues_table():
     markup = [f'# Dues']
-    rows = [(b('Name'), b('Total'), b('Discount'), b('Paid'))]
+    rows = [(b('Name'), b('Total'), b('Discount'), b('Paid'), b('Owed'))]
     for m in Member.objects().order_by("last_name"):
-        rows.append((c(f'{m.last_name}, {m.first_name}'), c(m.dues.total), c(m.dues.discount), c(m.dues.paid)))
-    markup.extend(build_table(('X','r','r','r'), rows))
+        rows.append((c(f'{m.last_name}, {m.first_name}'), c(m.dues.total), c(m.dues.discount), c(m.dues.paid), c(m.dues.total - (m.dues.discount+m.dues.paid))))
+    markup.extend(build_table(('X','r','r','r', 'r'), rows))
     return markup
 
 def build_bar_table():
