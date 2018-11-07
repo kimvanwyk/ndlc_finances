@@ -9,7 +9,7 @@ import kppe
 UDP_IP = "0.0.0.0"
 UDP_PORT = 5001
 
-def build(verbose=True):
+def build(verbose=True, month=None):
     text = build_report.build_markup_file()
     fn = f'{date.today():%y%m%d}_ndlc_finance_report'
     text = kppe.markup(text)
@@ -38,8 +38,9 @@ if __name__ == '__main__':
         rec.append(data)
         s = ''.join([str(r) for r in rec])
         if 'build' in s:
-            (ret, retcode, fn) = build()
+            (ret, retcode, fn) = build(verbose=True)
             sock.sendto(bytes(fn, 'utf8') if retcode == 0 else b'error', addr)
+            sock.sendto(bytes(ret, 'utf8'))
             rec = []
         if 'quit' in s:
             break
