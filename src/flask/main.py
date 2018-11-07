@@ -31,7 +31,7 @@ cake_transaction_map = {'transfer': (CakeTransferForm, CakeTransfer),
 
 @app.route('/')
 def index():
-    links = [('Balances', url_for('balances'))]
+    links = [('Balances', url_for('current_balances'))]
     for acc in Account.objects():
         links.append((f'Add Transaction for {acc.name.capitalize()} Account', url_for('add_transaction', account=acc.name)))
     links.append((f'Add Market Month', url_for('add_market_month')))
@@ -41,9 +41,8 @@ def index():
     links.append((f'Download Report', url_for('build_report')))
     return render_template('index.html', links=links)
 
-@app.route('/balances/')
-def balances():
-    report_month = report_months.get_report_months()[0]
+@app.route('/balances/<report_month>/')
+def balances(report_month):
     results = []
     for acc in Account.objects():
         balances = acc.current_balance(month = report_month)
@@ -52,6 +51,11 @@ def balances():
         results[-1].append([c[1] for c in acc.transaction_list(reverse=False, month = report_month)])
         results[-1].append((f'{balances[1].date:%d/%m/%y}', f'{balances[1].amount:.2f}'))
     return render_template('balances.html', results=results)
+    
+@app.route('/balances/current/')
+def current_balances():
+    report_month = report_months.get_report_months()[1]
+    return redirect(url_for('balances', report_month=report_month))
     
 @app.route('/transaction/add/<account>/', methods=('GET', 'POST'))
 def add_transaction(account):
