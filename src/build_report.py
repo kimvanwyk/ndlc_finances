@@ -139,7 +139,7 @@ def build_market_table():
         expenses = 0
         for md in mm.days:
             if md.traded:
-                on_duty = "/".join([m.short_name() for m in md.members])
+                on_duty = "/".join([m.short_name() for m in md.members] + md.additional_workers)
             else:
                 on_duty = 'Did not trade'
             rows.append((c(f'{md.date:%d/%m/%y}'), c(f'{on_duty}'), 
@@ -166,11 +166,11 @@ def build_markup_file(month=None):
         month = report_months.get_report_months()[1]
     markup = [f'<<heading:North Durban Lions Club Finance Report as at {date.today():%d %b %Y}>>\n']
     markup.extend(build_transaction_table(Account.objects(name='charity').first(), month))
-    markup.extend(build_dues_table())
-    markup.append('\\newpage')
-    markup.extend(build_transaction_table(Account.objects(name='admin').first(), month))
     markup.extend(build_bar_table())
     markup.extend(build_balances_table())
+    markup.append('\\newpage')
+    markup.extend(build_transaction_table(Account.objects(name='admin').first(), month))
+    markup.extend(build_dues_table())
     markup.append('\\newpage')
     markup.extend(build_market_table())
     markup.extend(build_cakes_table())

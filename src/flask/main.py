@@ -103,8 +103,12 @@ def edit_market_month(month):
     else:
         form = MarketMonthEditNoDaysForm(month=month, expenses=mm.expenses)
     if form.validate_on_submit():
-        if form.day_submit.data:
-            return redirect(url_for('edit_market_day', month=month, day=form.days.data))
+        try:
+            if form.day_submit.data:
+                return redirect(url_for('edit_market_day', month=month, day=form.days.data))
+        except AttributeError:
+            # not all form types have a day_submit button
+            pass
         if form.new_day_submit.data:
             return redirect(url_for('add_market_day', month=month))
         if form.month_submit.data:
@@ -133,8 +137,12 @@ def add_market_day(month):
     if form.validate_on_submit():
         d = date(year=int(f'20{month[:2]}'), month=int(month[2:]), day=1)
         mm = MarketMonth.objects(date=d).first()
+        aw = []
+        if form.additional_workers.data:
+            aw = form.additional_workers.data.split(',')
         md = MarketDay(date=form.date.data, traded=form.traded.data, income=form.income.data,
-                       expenses=form.expenses.data, members=[Member.objects(id=i).first() for i in form.members.data])
+                       expenses=form.expenses.data, members=[Member.objects(id=i).first() for i in form.members.data],
+                       additional_workers=aw)
         mm.days.append(md)
         mm.save()
         flash(f'Market Day "{md.date:%m%d}" added for Market Month "{md.date:%y%m}"')

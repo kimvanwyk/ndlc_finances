@@ -50,6 +50,7 @@ class MarketMonthSelectorForm(FlaskForm):
 class MarketDayForm(FlaskForm):
     date = DateField(label='Date', default=date.today())
     members = SelectMultipleField(label='Members', choices=list_members())
+    additional_workers = StringField(label='Additional Workers', default='')
     traded = BooleanField(label='Did the market stall trade?', default=True)
     income = DecimalField(label='Income', default=0)
     expenses = DecimalField(label='Expenses', default=0)
