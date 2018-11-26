@@ -113,7 +113,7 @@ def double_list():
 def build_cakes_table():
     cs = CakeStock.objects().first()
     d = defaultdict(double_list)
-    for t in cs.transfers[1:]:
+    for t in [t for t in cs.transfers if 'Stock Received' not in t.responsible_party]:
         d[t.responsible_party][0] += (t.number * (-1 if t.direction == 'return' else 1))
     for t in cs.payments:
         d[t.responsible_party][1] += t.amount
