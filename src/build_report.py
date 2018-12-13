@@ -120,9 +120,18 @@ def build_cakes_table():
     keys = list(d.keys())
     keys.sort()
     rows = [(b('Lion'), b('Cases Taken'), b('Total Amount'), b('Amount Paid'), b('Amount Owed'))]
+    totals = {'cases':0, 'amt': 0, 'paid': 0, 'owed':0}
     for k in keys:
-        amt = d[k][0] * 110
-        rows.append((c(k), c(int(d[k][0]/12)), c(int(amt)), c(int(d[k][1])), c(int(amt-d[k][1]))))
+        cases = int(d[k][0]/12)
+        totals['cases'] += cases
+        amt = int(d[k][0] * 110)
+        totals['amt'] += amt
+        paid = int(d[k][1])
+        totals['paid'] += paid
+        owed = int(amt-d[k][1])
+        totals['owed'] += owed
+        rows.append((c(k), c(cases), c(amt), c(paid), c(owed)))
+    rows.append((c(), b(totals['cases']), b(totals['amt']), b(totals['paid']), b(totals['owed'])))
     markup = [f'# Christmas Cakes']
     markup.extend(build_table(('X','r','r','r','r'), rows))
     markup.append(f'**Cases in stock: {cs.balance()}**\n')
