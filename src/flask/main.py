@@ -165,11 +165,10 @@ def edit_market_day(month, day):
         return redirect(url_for('index'))
     d = date(year=int(f'20{month[:2]}'), month=int(day[:2]), day=int(day[2:]))
     for (md_pos, md) in enumerate(mm.days):
-        if md.date == d:
+        if md.date.date() == d:
             break
     form = MarketDayForm(date=md.date, traded=md.traded, income=md.income,
                          expenses=md.expenses, members=[m.id for m in md.members])
-    print([(f.name, f.validate(form), f.data) for f in form])
     if form.validate_on_submit():
         md.date = form.date.data
         md.traded = form.traded.data
