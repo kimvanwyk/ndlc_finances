@@ -137,12 +137,25 @@ def build_cakes_table():
     markup.append(f'**Cases in stock: {cs.balance()}**\n')
     return markup
 
-def build_market_table():
-    mms = MarketMonth.objects.order_by('date')
+def build_market_expenses_table():
+    rows = [(b('Date'), b(f'Expense'),b('Amount'))]
+    (additional_expenses, total_additional_expense) = Account.objects(name='charity').first().get_market_expenses()
+    rows = []
+    for exp in additional_expenses:
+        rows.append((c(f'{exp.trans_date:%d/%m/%y}'),c(f'{exp.description}'),c(exp.amount)))
+    rows.append((c(), b('TOTAL ADDITIONAL EXPENSES'),b(total_additional_expense)))
+    markup = [f'# Market', '## Additional Market Expenses']
+    markup.extend(build_table(('c','X','r'), rows))
+    return markup
+
+def build_market_trading_table():
     tot_income = 0
     tot_expenses = 0
-    rows = [((b('Date'), b(f'On Duty'),
-                 b('Income'), b('Expenses'), b('Net')))]
+    rows = [(b('Market Date'), b(f'On Duty'),
+             b('Income'), b('Expenses'), b('Net'))]
+
+    (additional_expenses, total_additional_expense) = Account.objects(name='charity').first().get_market_expenses()
+    mms = MarketMonth.objects.order_by('date')
     for mm in mms:
         income = 0
         expenses = 0
@@ -155,18 +168,17 @@ def build_market_table():
                          c(md.income), c(md.expenses), c(md.income-md.expenses)))
             income += md.income
             expenses += md.expenses
-        rows.append((c(), c('Additional Expenses'),
-                     c(), c(mm.expenses), c()))
-        expenses += mm.expenses
         month = mm.date.strftime('%B').upper()
         rows.append((c(), b(f'{month} TOTALS'),
                      b(income), b(expenses), b(income-expenses)))
         tot_income += income
         tot_expenses += expenses
+    rows.append((c(), b('TOTAL ADDITIONAL EXPENSES'), c(), b(total_additional_expense), c()))
+    tot_expenses += total_additional_expense
     rows.append((c(), b(f'YTD TOTALS'),
                  b(tot_income), b(tot_expenses), b(tot_income-tot_expenses)))
         
-    markup = [f'# Market']
+    markup = ['## Market Trading']
     markup.extend(build_table(('c','X','r','r','r'), rows))
     return markup
 
@@ -175,14 +187,15 @@ def build_markup_file(month=None):
         month = report_months.get_report_months()[1]
     markup = [f'<<heading:North Durban Lions Club Finance Report as at {date.today():%d %b %Y}>>\n']
     markup.extend(build_transaction_table(Account.objects(name='charity').first(), month))
-    markup.extend(build_bar_table())
-    markup.extend(build_balances_table())
-    markup.append('\\newpage')
     markup.extend(build_transaction_table(Account.objects(name='admin').first(), month))
     markup.extend(build_dues_table())
-    markup.append('\\newpage')
-    markup.extend(build_market_table())
+    markup.extend(build_market_expenses_table())
+    markup.append(r'\newpage')
+    markup.extend(build_market_trading_table())
+    markup.append(r'\newpage')
     markup.extend(build_cakes_table())
+    markup.extend(build_bar_table())
+    markup.extend(build_balances_table())
     return '\n'.join(markup)
 
 def write_markup_file(month=None):

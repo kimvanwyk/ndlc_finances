@@ -75,6 +75,14 @@ class Account(mongoengine.Document):
 class CharityAccount(Account):
     transactions = mongoengine.EmbeddedDocumentListField(CharityTransaction)
 
+    def get_market_expenses(self):
+        expenses = []
+        total = decimal.Decimal(0)
+        for t in (t for t in self.transactions if t.market):
+            expenses.append(t)
+            total += t.amount
+        return(expenses, total)
+
 class AdminAccount(Account):
     transactions = mongoengine.EmbeddedDocumentListField(AdminTransaction)
 
