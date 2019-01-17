@@ -2,7 +2,7 @@ import data.mongo_setup
 #from data.dues import Dues
 #from data.members import Member
 from data.cakes import CakeTransfer, CakeStock, CakePayment
-from data.transactions import Transaction, AdminTransaction, Account, AdminAccount
+from data.transactions import CharityTransaction, AdminTransaction, Account, CharityAccount, AdminAccount
 from data.market import MarketMonth, MarketDay, list_market_months
 from data.members import Member, list_members
 from forms import *
@@ -22,7 +22,7 @@ with open('secret_key.txt', 'rb') as fh:
 
 data.mongo_setup.global_init()
 
-account_map = {'charity': (Account, Transaction, TransactionForm),
+account_map = {'charity': (CharityAccount, CharityTransaction, CharityTransactionForm),
                'admin': (AdminAccount, AdminTransaction, AdminTransactionForm)
                }
 

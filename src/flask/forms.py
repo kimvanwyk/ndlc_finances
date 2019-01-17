@@ -19,6 +19,9 @@ class TransactionForm(FlaskForm):
     report_month = SelectField(label='Report Month', choices = [(c,c) for c in report_months.get_report_months()])
     submit = SubmitField(label='Submit New Transaction')
 
+class CharityTransactionForm(TransactionForm):
+    market = BooleanField(label='Market Transaction', default=False)
+
 class AdminTransactionForm(TransactionForm):
     bar = BooleanField(label='Bar Transaction', default=False)
 

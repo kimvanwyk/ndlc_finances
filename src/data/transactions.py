@@ -25,6 +25,13 @@ class Transaction(mongoengine.EmbeddedDocument):
         'allow_inheritance': True
         }
 
+class CharityTransaction(Transaction):
+    market = mongoengine.BooleanField(default=False)
+
+    meta = {
+        'db_alias': 'default',
+        }
+
 class AdminTransaction(Transaction):
     bar = mongoengine.BooleanField(default=False)
 
@@ -64,6 +71,9 @@ class Account(mongoengine.Document):
         if reverse:
             l.reverse()
         return l
+
+class CharityAccount(Account):
+    transactions = mongoengine.EmbeddedDocumentListField(CharityTransaction)
 
 class AdminAccount(Account):
     transactions = mongoengine.EmbeddedDocumentListField(AdminTransaction)
