@@ -16,7 +16,7 @@ data.mongo_setup.global_init()
 
 @attr.s
 class Cell():
-    val = attr.ib(default='')
+    val = attr.ib(default=' ')
     bold = attr.ib(default=False)
 
     def __getattr__(self, name):
@@ -25,11 +25,10 @@ class Cell():
                 val = f'{self.val:.2f}'
             else:
                 val = str(self.val)
-            val = val.replace('&', '\&')
-            if not self.bold:
+            if not self.bold or not val.strip():
                 return val
             else:
-                return f'\\textbf{{{val}}}'
+                return f'**{val}**'
 
 def c(msg=''):
     return Cell(msg)
@@ -37,17 +36,13 @@ def c(msg=''):
 def b(msg=''):
     return Cell(msg, bold=True)
 
-def build_table(cols, rows):
-    hline = f'\\hhline{{{"|-"*len(cols)}|}}'
-    markup = []
-    markup.append(r'\begin{center}')
-    markup.append(f'\\begin{{tabularx}}{{\\textwidth}}{{|{"|".join(cols)}|}}')
-    markup.append(hline)
+def build_table(cols, header, rows):
+    markup = ['']
+    markup.append(f'|{"|".join([c.value for c in header])}|')
+    markup.append(f'|{"|".join(cols)}|')
     for r in rows:
-        markup.append(f'{" & ".join([c.value for c in r])} \\\\')
-        markup.append(hline)
-    markup.append(r'\end{tabularx}') 
-    markup.append(r'\end{center}') 
+        markup.append(f'|{"|".join([c.value for c in r])}|')
+    markup.append('')
     return markup
        
 def build_transaction_table(account, month):
@@ -60,7 +55,8 @@ def build_transaction_table(account, month):
             credit.bold = True
         rows.append((date, desc, debit, credit))
 
-    rows = [[b(txt) for txt in ('Date', 'Description', 'Debit', 'Credit')]]
+    header = (b(txt) for txt in ('Date', 'Description', 'Debit', 'Credit'))
+    rows = []
     (start_balance, end_balance) = account.current_balance(month)
     add_row(b(start_balance.date.strftime('%d/%m/%y')), b('Balance brought forward'), None, start_balance.amount)
     current_date = start_balance.date
@@ -74,15 +70,16 @@ def build_transaction_table(account, month):
     add_row(b(end_balance.date.strftime('%d/%m/%y')), b('Balance of account'), None, end_balance.amount)
 
     markup = [f'# {account.name.capitalize()} Account']
-    markup.extend(build_table(('c','X','r','r'), rows))
+    markup.extend(build_table((':-',':-----','-:','-:'), header, rows))
     return markup
 
 def build_dues_table():
     markup = [f'# Dues']
-    rows = [(b('Name'), b('Total'), b('Discount'), b('Paid'), b('Owed'))]
+    header = (b('Name'), b('Total'), b('Discount'), b('Paid'), b('Owed'))
+    rows = []
     for m in Member.objects().order_by("last_name"):
         rows.append((c(f'{m.last_name}, {m.first_name}'), c(m.dues.total), c(m.dues.discount), c(m.dues.paid), c(m.dues.total - (m.dues.discount+m.dues.paid))))
-    markup.extend(build_table(('X','r','r','r', 'r'), rows))
+    markup.extend(build_table((':-----','-:','-:','-:','-:'), header, rows))
     return markup
 
 def build_bar_table():
@@ -90,8 +87,9 @@ def build_bar_table():
     (sales, purchases) = acc.bar_values()
 
     markup = [f'# Bar Account']
-    markup.extend(build_table(('X','r','r'), ((c('Balance brought forward'), c(), c('0')), (c(f'Sales'), c(), c(sales)),
-                                              (c(f'Purchases'), c(purchases), c()), (b('Excess Income over Expenditure'), c(), b(sales-purchases))))) 
+    markup.extend(build_table((':-----','-:','-:'), [c(),c(),c()],
+                              ((b('Balance brought forward'), c(), b('0')), (c(f'Sales'), c(), c(sales)),
+                               (c(f'Purchases'), c(purchases), c()), (b('Excess Income over Expenditure'), c(), b(sales-purchases))))) 
     return markup
 
 def build_balances_table():
@@ -104,7 +102,7 @@ def build_balances_table():
         rows.append((c(acc.name.capitalize()), c(bal)))
     rows.append((b('Total'), b(total)))
     markup = [f'# Balances']
-    markup.extend(build_table(('X','r'), rows))
+    markup.extend(build_table((':----','-:'), [c(), c()], rows))
     return markup
 
 def double_list():
@@ -119,7 +117,8 @@ def build_cakes_table():
         d[t.responsible_party][1] += t.amount
     keys = list(d.keys())
     keys.sort()
-    rows = [(b('Lion'), b('Cases Taken'), b('Total Amount'), b('Amount Paid'), b('Amount Owed'))]
+    header = (b('Lion'), b('Cases Taken'), b('Total Amount'), b('Amount Paid'), b('Amount Owed'))
+    rows = []
     totals = {'cases':0, 'amt': 0, 'paid': 0, 'owed':0}
     for k in keys:
         cases = int(d[k][0]/12)
@@ -133,26 +132,28 @@ def build_cakes_table():
         rows.append((c(k), c(cases), c(amt), c(paid), c(owed)))
     rows.append((c(), b(totals['cases']), b(totals['amt']), b(totals['paid']), b(totals['owed'])))
     markup = [f'# Christmas Cakes']
-    markup.extend(build_table(('X','r','r','r','r'), rows))
+    markup.extend(build_table((':-----','-:','-:','-:','-:'), header, rows))
     markup.append(f'**Cases in stock: {cs.balance()}**\n')
     return markup
 
 def build_market_expenses_table():
-    rows = [(b('Date'), b(f'Expense'),b('Amount'))]
+    header = (b('Date'), b(f'Expense'),b('Amount'))
+    rows = []
     (additional_expenses, total_additional_expense) = Account.objects(name='charity').first().get_market_expenses()
     rows = []
     for exp in additional_expenses:
         rows.append((c(f'{exp.trans_date:%d/%m/%y}'),c(f'{exp.description}'),c(exp.amount)))
     rows.append((c(), b('TOTAL ADDITIONAL EXPENSES'),b(total_additional_expense)))
     markup = [f'# Market', '## Additional Market Expenses']
-    markup.extend(build_table(('c','X','r'), rows))
+    markup.extend(build_table((':-',':-----','-:'), header, rows))
     return markup
 
 def build_market_trading_table():
     tot_income = 0
     tot_expenses = 0
-    rows = [(b('Market Date'), b(f'On Duty'),
-             b('Income'), b('Expenses'), b('Net'))]
+    header = (b('Market Date'), b(f'On Duty'),
+             b('Income'), b('Expenses'), b('Net'))
+    rows = []
 
     (additional_expenses, total_additional_expense) = Account.objects(name='charity').first().get_market_expenses()
     mms = MarketMonth.objects.order_by('date')
@@ -179,7 +180,7 @@ def build_market_trading_table():
                  b(tot_income), b(tot_expenses), b(tot_income-tot_expenses)))
         
     markup = ['## Market Trading']
-    markup.extend(build_table(('c','X','r','r','r'), rows))
+    markup.extend(build_table((':-',':-----','-:','-:','-:'), header, rows))
     return markup
 
 def build_markup_file(month=None):
@@ -190,9 +191,9 @@ def build_markup_file(month=None):
     markup.extend(build_transaction_table(Account.objects(name='admin').first(), month))
     markup.extend(build_dues_table())
     markup.extend(build_market_expenses_table())
-    markup.append(r'\newpage')
+    markup.append('\\newpage')
     markup.extend(build_market_trading_table())
-    markup.append(r'\newpage')
+    markup.append('\\newpage')
     markup.extend(build_cakes_table())
     markup.extend(build_bar_table())
     markup.extend(build_balances_table())
