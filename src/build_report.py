@@ -189,13 +189,13 @@ def build_markup_file(month=None):
     markup = [f'<<heading:North Durban Lions Club Finance Report as at {date.today():%d %b %Y}>>\n']
     markup.extend(build_transaction_table(Account.objects(name='charity').first(), month))
     markup.extend(build_transaction_table(Account.objects(name='admin').first(), month))
-    markup.extend(build_dues_table())
-    markup.extend(build_market_expenses_table())
     markup.append('\\newpage')
+    markup.extend(build_market_expenses_table())
     markup.extend(build_market_trading_table())
+    markup.extend(build_dues_table())
+    markup.extend(build_bar_table())
     markup.append('\\newpage')
     markup.extend(build_cakes_table())
-    markup.extend(build_bar_table())
     markup.extend(build_balances_table())
     return '\n'.join(markup)
 
