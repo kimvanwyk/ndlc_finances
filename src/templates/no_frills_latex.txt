@@ -6,6 +6,7 @@
 \usepackage{lmodern}
 \renewcommand*\familydefault{\sfdefault} %% Only if the base font of the document is to be sans serif
 
+\usepackage{savetrees}
 \usepackage[usenames,dvipsnames]{color}
 
 \usepackage{ucs}
@@ -14,6 +15,7 @@
 \usepackage{multirow}
 \usepackage{hhline}
 \usepackage{tabularx}
+\usepackage{ltablex}
 \usepackage{longtable}
 \usepackage{booktabs}
 
