@@ -121,19 +121,22 @@ def build_cakes_table():
     rows = []
     totals = {'cases':0, 'amt': 0, 'paid': 0, 'owed':0}
     for k in keys:
-        cases = int(d[k][0]/12)
+        cases = d[k][0]/12.0
         totals['cases'] += cases
+        case_str = f'{int(cases)} {round((cases - int(cases)) * 12)}/12'
         amt = int(d[k][0] * 110)
         totals['amt'] += amt
         paid = int(d[k][1])
         totals['paid'] += paid
         owed = int(amt-d[k][1])
         totals['owed'] += owed
-        rows.append((c(k), c(cases), c(amt), c(paid), c(owed)))
-    rows.append((c(), b(totals['cases']), b(totals['amt']), b(totals['paid']), b(totals['owed'])))
+        rows.append((c(k), c(case_str), c(amt), c(paid), c(owed)))
+    case_str = f"{int(totals['cases'])} {round((totals['cases'] - int(totals['cases'])) * 12)}/12"
+    rows.append((c(), b(case_str), b(totals['amt']), b(totals['paid']), b(totals['owed'])))
     markup = [f'# Christmas Cakes']
     markup.extend(build_table((':-----','-:','-:','-:','-:'), header, rows))
     markup.append(f'**Cases in stock: {cs.balance()}**\n')
+    markup.append(f'Note that some cake payments for the Golden Hours market may be included in market takings and not accurately reflected here.\n')
     return markup
 
 def build_market_expenses_table():
