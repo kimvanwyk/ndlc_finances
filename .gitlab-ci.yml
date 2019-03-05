@@ -167,7 +167,7 @@ container_scanning:
 
   function build() {
     registry_login
-    export REPO=${CI_REGISTRY_IMAGE}_flask
+    export REPO=${CI_REGISTRY_IMAGE}/flask
       docker build \
         --build-arg HTTP_PROXY="$HTTP_PROXY" \
         --build-arg http_proxy="$http_proxy" \
@@ -184,7 +184,7 @@ container_scanning:
     docker push "$REPO:latest"
     echo ""
 
-    export REPO=${CI_REGISTRY_IMAGE}_report
+    export REPO=${CI_REGISTRY_IMAGE}/report
       docker build \
         --build-arg HTTP_PROXY="$HTTP_PROXY" \
         --build-arg http_proxy="$http_proxy" \
