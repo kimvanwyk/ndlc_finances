@@ -167,7 +167,7 @@ container_scanning:
 
   function build() {
     registry_login
-    export REPO=${CI_APPLICATION_REPOSITORY}_flask
+    export REPO=${CI_REGISTRY_IMAGE}_flask
       docker build \
         --build-arg HTTP_PROXY="$HTTP_PROXY" \
         --build-arg http_proxy="$http_proxy" \
@@ -180,11 +180,11 @@ container_scanning:
         -t "$REPO:$CI_APPLICATION_TAG" -f flask_dockerfile .
     echo "Pushing to GitLab Container Registry..."
     docker push "$REPO:$CI_APPLICATION_TAG"
-    docker tag "$REPO:$CI_APPLICATION_TAG" "$CI_REGISTRY_IMAGE:latest"
+    docker tag "$REPO:$CI_APPLICATION_TAG" "$REPO:latest"
     docker push "$REPO:latest"
     echo ""
 
-    export REPO=${CI_APPLICATION_REPOSITORY}_report
+    export REPO=${CI_REGISTRY_IMAGE}_report
       docker build \
         --build-arg HTTP_PROXY="$HTTP_PROXY" \
         --build-arg http_proxy="$http_proxy" \
@@ -197,7 +197,7 @@ container_scanning:
         -t "$REPO:$CI_APPLICATION_TAG" -f report_dockerfile .
     echo "Pushing to GitLab Container Registry..."
     docker push "$REPO:$CI_APPLICATION_TAG"
-    docker tag "$REPO:$CI_APPLICATION_TAG" "$CI_REGISTRY_IMAGE:latest"
+    docker tag "$REPO:$CI_APPLICATION_TAG" "$REPO:latest"
     docker push "$REPO:latest"
     echo ""
 
