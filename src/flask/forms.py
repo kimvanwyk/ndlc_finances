@@ -12,7 +12,7 @@ data.mongo_setup.global_init()
 
 class TransactionForm(FlaskForm):
     trans_type = RadioField(label='Transaction', choices = [(c,c) for c in ('deposit', 'payment')], default='deposit')
-    trans_date = DateField(label='Date', default=date.today())
+    trans_date = DateField(label='Date', default=date.today)
     description = StringField(label='Description')
     amount = DecimalField(label='Amount')
     position = SelectField(label='Insert After')
@@ -51,7 +51,7 @@ class MarketMonthSelectorForm(FlaskForm):
     submit = SubmitField(label='Select Market Month')
 
 class MarketDayForm(FlaskForm):
-    date = DateField(label='Date', default=date.today())
+    date = DateField(label='Date', default=date.today)
     members = SelectMultipleField(label='Members', choices=list_members())
     additional_workers = StringField(label='Additional Workers', default='')
     traded = BooleanField(label='Did the market stall trade?', default=True)
@@ -60,14 +60,14 @@ class MarketDayForm(FlaskForm):
     submit = SubmitField(label='Submit Market Day Changes')
 
 class CakeTransferForm(FlaskForm):
-    date = DateField(label='Date', default=date.today())
+    date = DateField(label='Date', default=date.today)
     number = IntegerField(label='Number of Cakes', default=12)
     responsible_party = StringField(label='Responsible Party')
     direction = RadioField(label='Transfer Direction', choices = [(c,c) for c in ('withdrawal', 'return')], default='withdrawal')
     submit = SubmitField(label='Submit Cake Transfer')
 
 class CakePaymentForm(FlaskForm):
-    date = DateField(label='Date', default=date.today())
+    date = DateField(label='Date', default=date.today)
     amount = DecimalField(label='Amount')
     responsible_party = StringField(label='Responsible Party')
     submit = SubmitField(label='Submit Cake Payment')

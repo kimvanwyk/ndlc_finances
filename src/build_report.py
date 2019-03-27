@@ -198,8 +198,6 @@ def build_markup_file(month=None):
     markup.extend(build_market_trading_table())
     markup.extend(build_dues_table())
     markup.extend(build_bar_table())
-    markup.append('\\newpage')
-    markup.extend(build_cakes_table())
     markup.extend(build_balances_table())
     return '\n'.join(markup)
 
